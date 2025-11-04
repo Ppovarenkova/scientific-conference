@@ -1,0 +1,49 @@
+.header {
+    background-color: var(--accent-color);
+    padding: 10px 18px;
+    text-align: center;
+    border-bottom: 2px solid var(--secondary-color);
+    position:sticky;
+    top:0;
+}
+.whiteLink {
+    text-decoration: none;
+    color: var(--secondary-color)!important;
+    font-family: var(--font-main);
+    font-size: 18px;
+    text-transform: uppercase;
+    font-weight: 400;
+}
+.whiteLink:hover,
+.whiteLink:focus,
+.whiteLink:active {
+    color: var(--hover-color)!important;  /* сохраняем белый цвет при hover/focus/active */
+}
+
+
+.navItem {
+  position: relative;
+}
+
+
+.navItem:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -25px; 
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 30px;
+  background-color: var(--secondary-color); 
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.logoIcon {
+  width: 170px;
+  height: 70px;
+}

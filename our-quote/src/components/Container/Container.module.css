@@ -1,0 +1,9 @@
+.container {
+    width: 1200px;
+    margin: auto;
+}
+
+.containerWrapper{
+    width: 100%;
+    background-color: rgba(107, 107, 107, 1);
+}

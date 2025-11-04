@@ -1,0 +1,80 @@
+.registration {
+  background-color: var(--accent-color);
+}
+
+.container {
+  padding: 50px 80px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.leftSide {
+  max-width: 60%;
+}
+
+section.registration .description {
+  font-size: 20px;
+  color: #222;
+  margin: 0;
+  font-weight: 400 !important;
+  letter-spacing: 0.5px;
+  font-weight: 300;
+}
+
+section.registration .strong {
+  font-size: 20px;
+  color: #222;
+  font-weight: 500 !important;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+ol {
+  list-style-type: decimal !important;
+  padding-left: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+li {
+  font-size: 20px;
+  color: #222;
+  font-weight: 400 !important;
+  letter-spacing: 0.5px;
+}
+
+.deadline {
+  font-size: 22px;
+  margin-top: 2rem;
+  font-weight: 600;
+  color: #000;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.rightSide {
+  display: flex;
+  align-items: end;
+}
+
+.button {
+  background-color: #0056b3;
+  color: white;
+  border: none;
+  padding: 20px 32px;
+  font-size: 24px;
+  font-weight: 300;
+  font-family: 'Metrophobic', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #004494;
+}

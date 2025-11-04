@@ -1,0 +1,15 @@
+.committeeSection {
+    background-color: var(--accent-color);
+}
+.container {
+  padding: 50px 80px;
+  text-align: left;
+}
+.cardsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 30px;
+}
+
+
+

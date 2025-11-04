@@ -1,0 +1,35 @@
+.hero {
+    background-color: var(--primary-color);
+}
+.container {
+    padding: 50px 80px;
+    flex-direction: column;
+}
+.rightSide {
+    width: 100%;
+    display: flex;
+    justify-content: right;
+}
+.leftSide {
+    width: 100%;
+}
+.mainTitle {
+    font-family: var(--font-title);
+    font-size: 46px;
+    font-weight: 200;
+    text-transform: uppercase;
+    color: var(--accent-color);
+}
+.date {
+    font-family: var(--font-main);
+    font-size: 24px;
+    color: var(--accent-color);
+    font-weight: 300;
+}
+.text {
+    font-family: var(--font-main);
+    font-size: 20px;
+    color: var(--accent-color);
+    font-weight: 300;
+    text-align: right;
+}
