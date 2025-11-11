@@ -1,5 +1,6 @@
 import styles from './Header.module.css';
 import { ReactComponent as LogoIcon } from '../../assets/logo.svg';
+import { Link } from "react-router-dom";
 
 export default function Header() {
     return (
@@ -13,9 +14,9 @@ export default function Header() {
 }
 function Logo() {
     return (
-        <div className={styles.logo}>
+        <Link className={styles.logo} to ="/">
             <LogoIcon className={styles.logoIcon} />
-        </div>
+        </Link>
     )
 }
 
@@ -23,19 +24,19 @@ function Navbar() {
     return (
         <nav className={`nav justify-content-end gap-5 ${styles.navBar}`}>
             <div className={styles.navItem}>
-                <a className={`nav-link ${styles.whiteLink}`} href="#">Registration</a>
+                <Link className={`nav-link ${styles.whiteLink}`} href="#">Registration</Link>
             </div>
             <div className={styles.navItem}>
-                <a className={`nav-link ${styles.whiteLink}`} href="#">Program</a>
+                <Link className={`nav-link ${styles.whiteLink}`} href="#">Program</Link>
             </div>
             <div className={styles.navItem}>
-                <a className={`nav-link ${styles.whiteLink}`} href="#">Participants</a>
+                <Link className={`nav-link ${styles.whiteLink}`} to="/participants">Participants</Link>
             </div>
             <div className={styles.navItem}>
-                <a className={`nav-link ${styles.whiteLink}`} href="#">Abstracts</a>
+                <Link className={`nav-link ${styles.whiteLink}`} to="/abstracts">Abstracts</Link>
             </div>
             <div>
-                <a className={`nav-link ${styles.whiteLink}`} href="#">Venue</a>
+                <Link className={`nav-link ${styles.whiteLink}`} href="#">Venue</Link>
             </div>
         </nav>
     )
