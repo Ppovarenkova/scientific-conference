@@ -1,0 +1,11 @@
+.abstractsSection {
+  background-color: var(--accent-color);
+  padding: 50px 80px;
+  padding-bottom: 80px;
+  text-align: left;
+}
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}

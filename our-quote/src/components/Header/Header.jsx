@@ -24,7 +24,7 @@ function Navbar() {
     return (
         <nav className={`nav justify-content-end gap-5 ${styles.navBar}`}>
             <div className={styles.navItem}>
-                <Link className={`nav-link ${styles.whiteLink}`} href="#">Registration</Link>
+                <Link className={`nav-link ${styles.whiteLink}`} to="/registration">Registration</Link>
             </div>
             <div className={styles.navItem}>
                 <Link className={`nav-link ${styles.whiteLink}`} href="#">Program</Link>

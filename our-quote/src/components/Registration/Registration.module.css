@@ -61,8 +61,8 @@ li {
   background-color: var(--secondary-color);
   color: white;
   border: none;
-  padding: 15px 30px;
-  font-size: 24px;
+  padding: 10px 35px;
+  font-size: 22px;
   font-weight: 300;
   font-family: 'Metrophobic', sans-serif;
   letter-spacing: 1px;
@@ -73,6 +73,7 @@ li {
   gap: 0.5rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  text-decoration: none;
 }
 
 .button:hover {

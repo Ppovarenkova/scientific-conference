@@ -1,6 +1,7 @@
 import styles from './Registration.module.css';
 import Separator from '../ui/Separator/Separator';
 import Title from '../ui/Title/Title';
+import { Link } from 'react-router-dom';
 
 export default function Registration() {
     return (
@@ -23,7 +24,9 @@ export default function Registration() {
             </p>
         </div>
         <div className={styles.rightSide}>
-            <div className={styles.button}>TO THE REGISTRATION FORM</div>
+            <Link to="/registration" className={styles.button}>
+            TO THE REGISTRATION FORM
+          </Link>
         </div>
         </div>
         <Separator />

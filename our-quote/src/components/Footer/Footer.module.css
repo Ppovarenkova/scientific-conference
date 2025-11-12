@@ -16,11 +16,14 @@
 
 .column {
   flex: 1 1 150px;
-  width: 150 px;
 }
 
 .column:not(:last-child) {
   margin-right: 20px;
+}
+.column:first-child {
+  flex: 2 1 190px; /* в 2 раза шире, чем остальные */
+  max-width: 400px;
 }
 
 .column h4 {
@@ -49,13 +52,11 @@
 .logo {
   display: flex;
   align-items: center;
-  cursor: pointer;
   margin-bottom: 15px;
 }
 
 .logoIcon {
-  width: 180px;
-  height: 70px;
+  width: 230px
 }
 
 .separator {

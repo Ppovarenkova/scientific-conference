@@ -1,18 +1,18 @@
 import styles from './Footer.module.css';   
-import { ReactComponent as LogoIcon } from '../../assets/logo.svg';
+import LogoIcon from '../../assets/logoWhite.png';
 
 export default function Footer() {
     function Logo() {
         return (
             <div className={styles.logo}>
-                <LogoIcon className={styles.logoIcon} />
+                <img className ={styles.logoIcon} src={LogoIcon} alt="Logo" />
             </div>
         )
     }
     
   return (
     <footer className={styles.footer}>
-      <div className={`container ${styles.footerContainer}`}>
+      <div className={styles.footerContainer}>
         <div className={styles.column}>
           <Logo />
           <p>
@@ -52,7 +52,7 @@ export default function Footer() {
               WSC 2025 Poster
             </a>
             <br />
-            Information desk: paus petr (at) cvut.cz
+            Information desk: pauspetr@cvut.cz
           </p>
         </div>
       </div>
