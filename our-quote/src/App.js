@@ -13,6 +13,7 @@ import Home from './pages/Home';
 import Participants from './pages/ParticipantsPage';
 import AbstractsPage from './pages/AbstractsPage';
 import RegistrationPage from './pages/RegistrationPage';
+import ProgramPage from './pages/ProgramPage';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/participants" element={<Participants />} />
           <Route path="/abstracts" element={<AbstractsPage />} />
           <Route path="/registration" element={<RegistrationPage />} />
+          <Route path="/program" element={<ProgramPage />} />
         </Routes>
         <Footer />
       </Container>

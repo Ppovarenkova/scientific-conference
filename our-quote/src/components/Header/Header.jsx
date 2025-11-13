@@ -1,6 +1,6 @@
 import styles from './Header.module.css';
 import { ReactComponent as LogoIcon } from '../../assets/logo.svg';
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Header() {
     return (
@@ -13,8 +13,17 @@ export default function Header() {
     )
 }
 function Logo() {
+
+  const location = useLocation();
+
+  const handleLogoClick = (e) => {
+    if (location.pathname === "/") {
+      e.preventDefault(); 
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
     return (
-        <Link className={styles.logo} to ="/">
+        <Link className={styles.logo} to ="/" onClick={handleLogoClick}>
             <LogoIcon className={styles.logoIcon} />
         </Link>
     )
@@ -27,7 +36,7 @@ function Navbar() {
                 <Link className={`nav-link ${styles.whiteLink}`} to="/registration">Registration</Link>
             </div>
             <div className={styles.navItem}>
-                <Link className={`nav-link ${styles.whiteLink}`} href="#">Program</Link>
+                <Link className={`nav-link ${styles.whiteLink}`} to="/program">Program</Link>
             </div>
             <div className={styles.navItem}>
                 <Link className={`nav-link ${styles.whiteLink}`} to="/participants">Participants</Link>
