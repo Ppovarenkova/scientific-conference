@@ -5,7 +5,10 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from . models import *
 from rest_framework.response import Response
-from . serializer import *
+from .serializers import *
+from rest_framework.generics import ListAPIView
+from .models import ConferenceDay
+from .serializers import ConferenceDaySerializer
 # Create your views here.
 
 class ReactView(APIView):
@@ -23,3 +26,7 @@ class ReactView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return  Response(serializer.data)
+        
+class ProgramView(ListAPIView):
+    queryset = ConferenceDay.objects.all().order_by("date")
+    serializer_class = ConferenceDaySerializer
