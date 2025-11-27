@@ -33,5 +33,5 @@ class SessionAdmin(admin.ModelAdmin):
 
 @admin.register(Talk)
 class TalkAdmin(admin.ModelAdmin):
-    list_display = ("speaker", "title", "session", "start_time", "end_time")
-    search_fields = ("speaker", "title")
+    list_display = ("title", "talk_type", "speaker", "start_time", "end_time")
+    list_filter = ("talk_type", "session")

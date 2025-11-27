@@ -1,14 +1,12 @@
-from django.shortcuts import render
-
 # Create your views here.
-from django.shortcuts import render
+
 from rest_framework.views import APIView
 from . models import *
 from rest_framework.response import Response
 from .serializers import *
-from rest_framework.generics import ListAPIView
-from .models import ConferenceDay
 from .serializers import ConferenceDaySerializer
+
+
 # Create your views here.
 
 class ReactView(APIView):
@@ -27,6 +25,20 @@ class ReactView(APIView):
             serializer.save()
             return  Response(serializer.data)
         
-class ProgramView(ListAPIView):
-    queryset = ConferenceDay.objects.all().order_by("date")
-    serializer_class = ConferenceDaySerializer
+class ProgramView(APIView):
+    def get(self, request):
+        days = ConferenceDay.objects.all()
+        data = ConferenceDaySerializer(days, many=True).data
+        return Response(data)
+    
+
+
+    
+
+
+
+
+
+
+
+    

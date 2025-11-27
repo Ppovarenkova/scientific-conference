@@ -1,9 +1,7 @@
 import styles from "./Program.module.css";
 
 export default function Talk({ talk }) {
-  const isBreak =
-    talk.speaker.toLowerCase().includes("break") ||
-    talk.title.toLowerCase().includes("break");
+  const isBreak = talk.talk_type === "break" || talk.talk_type === "event";
 
 
 function formatTime(timeString) {

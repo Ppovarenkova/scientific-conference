@@ -26,7 +26,7 @@ export default function Program() {
             <div className={styles.scheduleContainer}>
                 <div className={styles.program}>
                     {data.map(day => (
-                        <ProgramDay key={day.date} day={day} />
+                        <ProgramDay key={day.id} day={day} />
                     ))}
                 </div>
             </div>
