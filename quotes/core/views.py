@@ -3,6 +3,7 @@
 from rest_framework.views import APIView
 from . models import *
 from rest_framework.response import Response
+from rest_framework import generics
 from .serializers import *
 from .serializers import ConferenceDaySerializer
 
@@ -25,19 +26,43 @@ class ReactView(APIView):
             serializer.save()
             return  Response(serializer.data)
         
-class ProgramView(APIView):
-    def get(self, request):
-        days = ConferenceDay.objects.all()
-        data = ConferenceDaySerializer(days, many=True).data
-        return Response(data)
-    
+# Program: all days with timeline
+class ProgramView(generics.ListAPIView):
+    queryset = ConferenceDay.objects.all().order_by("date")
+    serializer_class = ConferenceDaySerializer
 
 
-    
+# Participants
+class ParticipantListView(generics.ListCreateAPIView):
+    queryset = Participant.objects.all().order_by("name")
+    serializer_class = ParticipantSerializer
 
 
+class ParticipantDetailView(generics.RetrieveAPIView):
+    queryset = Participant.objects.all()
+    serializer_class = ParticipantSerializer
 
 
+# Abstracts
+class AbstractListView(generics.ListCreateAPIView):
+    queryset = Abstract.objects.all().order_by("title")
+    serializer_class = AbstractSerializer
+
+
+class AbstractDetailView(generics.RetrieveAPIView):
+    queryset = Abstract.objects.all()
+    serializer_class = AbstractSerializer
+
+
+# Talks (optional endpoints)
+class TalkListView(generics.ListAPIView):
+    queryset = Talk.objects.all().order_by("day", "start_time")
+    serializer_class = TalkSerializer
+
+
+class TalkDetailView(generics.RetrieveAPIView):
+    queryset = Talk.objects.all()
+    serializer_class = TalkSerializer
 
 
 

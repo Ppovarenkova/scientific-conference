@@ -1,10 +1,10 @@
 from django.db import models
 
-# Create your models here.
 
 class React(models.Model):
     name = models.CharField(max_length=30)
     detail = models.CharField(max_length=500)
+
 
 class ConferenceDay(models.Model):
     date = models.DateField()
@@ -20,15 +20,43 @@ class Session(models.Model):
     day = models.ForeignKey(
         ConferenceDay, related_name="sessions", on_delete=models.CASCADE
     )
-    chair = models.CharField(max_length=255, blank=True)  # Chair — просто текст
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    chair = models.CharField(max_length=255, blank=True)
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["start_time"]
 
     def __str__(self):
-        return f"{self.day} | {self.chair}"
+        return f"{self.day} | {self.chair or 'Session'}"
+
+
+class Participant(models.Model):
+    name = models.CharField(max_length=255)
+    affiliation = models.CharField(max_length=500, blank=True)
+    email = models.EmailField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Abstract(models.Model):
+    title = models.CharField(max_length=500)
+    text = models.TextField(blank=True)
+    authors = models.CharField(max_length=500, blank=True)
+    department = models.CharField(max_length=255, blank=True)
+
+    # abstract ←→ participant
+    participant = models.OneToOneField(
+        Participant,
+        related_name="abstract",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        return self.title
 
 
 class Talk(models.Model):
@@ -41,10 +69,11 @@ class Talk(models.Model):
     day = models.ForeignKey(
         ConferenceDay, related_name="items", on_delete=models.CASCADE
     )
+
     session = models.ForeignKey(
         Session,
         related_name="talks",
-        on_delete=models.SET_NULL,     # важно!
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
     )
@@ -52,7 +81,24 @@ class Talk(models.Model):
     talk_type = models.CharField(max_length=20, choices=TALK_TYPES, default="talk")
 
     title = models.CharField(max_length=255)
-    speaker = models.CharField(max_length=255, blank=True, null=True)
+
+    # talk → participant
+    participant = models.ForeignKey(
+        Participant,
+        related_name="talks",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    # talk → abstract
+    abstract = models.OneToOneField(
+        Abstract,
+        related_name="talk",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -62,13 +108,3 @@ class Talk(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.talk_type})"
-
-
-
-
-
-
-
-
-
-    
