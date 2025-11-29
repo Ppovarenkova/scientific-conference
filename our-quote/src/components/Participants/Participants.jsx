@@ -2,31 +2,41 @@ import styles from './Participants.module.css';
 import Title from '../ui/Title/Title';
 import ParticipantsCard from '../ui/ParticipantsCard/ParticipantsCard';
 import { useEffect, useState } from "react";
+import Loader from '../ui/Loader/Loader';
 
 export default function Participants() {
-    const [participants, setParticipants] = useState([]);
+  const [participants, setParticipants] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetch("http://localhost:8000/api/participants/")
-            .then(res => res.json())
-            .then(setParticipants);
-    }, []);
+  useEffect(() => {
+    fetch("http://localhost:8000/api/participants/")
+      .then(res => res.json())
+      .then(data => {
+        setParticipants(data);
+        setLoading(false);
+      });
+  }, []);
 
-    return (
-        <section className={styles.participantsSection}>
-            <Title text="List of participants" />
-            <div className={styles.cardsContainer}>
-                {participants.map(person => (
-                    <ParticipantsCard
-                        key={person.id}
-                        id={person.id}
-                        name={person.name}
-                        department={person.affiliation}
-                        email={person.email}
-                        abstractId={person.abstract_id}
-                    />
-                ))}
-            </div>
-        </section>
-    );
+  return (
+    <section className={styles.participantsSection}>
+      <Title text="List of participants" />
+
+      {loading ? (
+        <Loader />
+      ) : (
+        <div className={`${styles.cardsContainer} ${styles.fadeIn}`}>
+          {participants.map(person => (
+            <ParticipantsCard
+              key={person.id}
+              id={person.id}
+              name={person.name}
+              department={person.affiliation}
+              email={person.email}
+              abstractId={person.abstract_id}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
 }

@@ -71,6 +71,7 @@ export default function RegistrationForm() {
   return (
     <section className={styles.formSection}>
         <Title text="Registration Form" />
+        <div className={styles.fadeIn}>
         <p className={styles.instructions}>
             Conference fee is free of charge, accommodation is not provided
         </p>
@@ -173,6 +174,7 @@ export default function RegistrationForm() {
           Submit
         </button>
       </form>
+      </div>
     </section>
   );
 }

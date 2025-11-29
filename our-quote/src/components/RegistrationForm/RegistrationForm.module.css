@@ -131,3 +131,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     width: 100%;
     margin-right: auto;
 }
+.fadeIn {
+    opacity: 0;
+    animation: fadeInAnim 0.4s ease forwards;
+}
+
+@keyframes fadeInAnim {
+    to {
+        opacity: 1;
+    }
+}

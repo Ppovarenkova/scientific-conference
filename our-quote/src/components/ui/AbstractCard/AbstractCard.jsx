@@ -9,7 +9,7 @@ export default function AbstractCard({ id, title, authors, department, abstractT
   }
 
   return (
-    <div className={styles.card}>
+    <div id={`abstract-${id}`} className={styles.card}>
       <h3 className={styles.title}>{title}</h3>
       <p className={styles.authors}>{authors}</p>
       <p className={styles.department}>{department}</p>

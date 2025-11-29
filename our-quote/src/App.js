@@ -9,7 +9,7 @@ import Container from "./components/Container/Container";
 import Header from "./components/Header/Header";
 import Footer from "./components/Footer/Footer";
 
-import Home from './pages/Home';
+import HomePage from './pages/HomePage';
 import Participants from './pages/ParticipantsPage';
 import AbstractsPage from './pages/AbstractsPage';
 import RegistrationPage from './pages/RegistrationPage';
@@ -22,7 +22,7 @@ function App() {
       <Container>
         <Header />
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/participants" element={<Participants />} />
           <Route path="/abstracts" element={<AbstractsPage />} />
           <Route path="/registration" element={<RegistrationPage />} />
