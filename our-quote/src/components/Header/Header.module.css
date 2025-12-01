@@ -48,3 +48,63 @@
   width: 170px;
   height: 70px;
 }
+
+.inner {
+  position: relative;
+}
+
+/* Блок Venue */
+.dropdownWrapper {
+  position: relative;
+}
+
+/* Стрелочка */
+.arrow {
+  font-size: 10px;
+  margin-left: 5px;
+  transition: transform 0.2s ease;
+}
+
+.dropdownWrapper:hover .arrow {
+  cursor: pointer;
+  transform: rotate(180deg);
+}
+
+/* Выпадающее меню */
+.dropdownMenu {
+  position: absolute;
+  top: 64px;
+  left: -44px; /* ← держит меню внутри контейнера */
+  background: white;
+  padding: 10px 0;
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  animation: fadeIn 0.2s ease;
+  z-index: 100;
+  min-width: 180px;
+}
+
+/* Элемент меню */
+.dropdownItem {
+  display: block;
+  padding: 10px 18px;
+  color: #003b87;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dropdownItem:hover {
+  background: #eaf0ff;
+}
+
+/* Анимация плавного появления */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdownTrigge {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}

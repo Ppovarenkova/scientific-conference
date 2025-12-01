@@ -33,6 +33,7 @@ export default function Participants() {
               department={person.affiliation}
               email={person.email}
               abstractId={person.abstract_id}
+              photo={person.photo}
             />
           ))}
         </div>

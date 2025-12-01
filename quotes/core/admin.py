@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ConferenceDay, Session, Talk, Participant, Abstract
+from .models import ConferenceDay, Session, Talk, Participant, Abstract, Organizer, OrganizingCommittee
 
 
 class TalkInline(admin.TabularInline):
@@ -14,6 +14,8 @@ class SessionInline(admin.TabularInline):
     extra = 1
     fields = ("chair", "start_time", "end_time")
     ordering = ("start_time",)
+
+
 
 
 @admin.register(ConferenceDay)
@@ -52,3 +54,13 @@ class ParticipantAdmin(admin.ModelAdmin):
 class AbstractAdmin(admin.ModelAdmin):
     list_display = ("title", "authors")
     search_fields = ("title", "authors")
+
+@admin.register(Organizer)
+class OrganizerAdmin(admin.ModelAdmin):
+    list_display = ("name", "department", "email")
+    search_fields = ("name", "department")
+
+@admin.register(OrganizingCommittee)
+class OrganizingCommitteeAdmin(admin.ModelAdmin):
+    list_display = ("name", "department", "email")
+    search_fields = ("name", "department")  

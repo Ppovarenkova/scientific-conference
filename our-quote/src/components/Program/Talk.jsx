@@ -1,4 +1,5 @@
 import styles from "./Program.module.css";
+import { Link } from "react-router-dom";
 
 export default function Talk({ talk }) {
   const isBreak = talk.talk_type === "break" || talk.talk_type === "event";
@@ -19,7 +20,16 @@ export default function Talk({ talk }) {
 
       <div className={styles.abstractInfo}>
         <div className={styles.speaker}>{talk.participant?.name}</div>
-        <div className={styles.title}>{talk.title}</div>
+        {isBreak ? (
+          <div className={styles.title}>{talk.title}</div>
+        ) : (
+          <Link
+            to={`/abstracts?abstract=${talk.abstract_id}`}
+            className={styles.linkTitle}
+          >
+            {talk.title}
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -35,6 +35,7 @@ class Participant(models.Model):
     name = models.CharField(max_length=255)
     affiliation = models.CharField(max_length=500, blank=True)
     email = models.EmailField(blank=True)
+    photo = models.ImageField(upload_to="participants/", blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -108,3 +109,21 @@ class Talk(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.talk_type})"
+    
+class Organizer(models.Model):
+    name = models.CharField(max_length=255)
+    department = models.CharField(max_length=500, blank=True)
+    email = models.EmailField(blank=True)
+    photo = models.ImageField(upload_to="organizers/", blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+    
+class OrganizingCommittee(models.Model):
+    name = models.CharField(max_length=255)
+    department = models.CharField(max_length=500, blank=True)
+    email = models.EmailField(blank=True)
+    photo = models.ImageField(upload_to="organizingCommittee/", blank=True, null=True)
+
+    def __str__(self):
+        return self.name

@@ -2,45 +2,42 @@ import styles from './OrginisingCommittee.module.css';
 import HomeCard from '../ui/HomeCard/HomeCard';
 import Separator from '../ui/Separator/Separator';
 import Title from '../ui/Title/Title';
+import Loader from '../ui/Loader/Loader';
+import { useEffect, useState } from "react";
 
 export default function OrganisingCommittee() {
-    const members = [
-        {
-            name: 'K. Horaisová',
-            department: 'Department of Software Engineering, FNSPE, Czech Technical University in Prague',
-            email: 'katerina.horaisova@fjfi.cvut.cz',
-        },
-        {
-            name: 'K. Horaisová',
-            department: 'Department of Software Engineering, FNSPE, Czech Technical University in Prague',
-            email: 'katerina.horaisova@fjfi.cvut.cz',
-        },
-        {
-            name: 'K. Horaisová',
-            department: 'Department of Software Engineering, FNSPE, Czech Technical University in Prague',
-            email: 'katerina.horaisova@fjfi.cvut.cz',
-        },
-        {
-            name: 'K. Horaisová',
-            department: 'Department of Software Engineering, FNSPE, Czech Technical University in Prague',
-            email: 'katerina.horaisova@fjfi.cvut.cz',
-        },
-    ];
+    const [organisers, setOrganisers] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch("http://localhost:8000/api/committees/")
+            .then(res => res.json())
+            .then(data => {
+                setOrganisers(data);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, []);
 
     return (
         <section className={styles.committeeSection}>
             <div className={styles.container}>
-                <Title text="Organising Committee"/>
-                <div className={styles.cardsContainer}>
-                    {members.map((person, index) => (
-                        <HomeCard
-                            key={index}
-                            name={person.name}
-                            department={person.department}
-                            email={person.email}
-                        />
-                    ))}
-                </div>
+                <Title text="Organising Committee" />
+                {loading ? (
+                    <Loader />
+                ) : (
+        <div className={`${styles.cardsContainer} ${styles.fadeIn}`}>
+          {organisers.map(person => (
+            <HomeCard
+              key={person.id}
+              name={person.name}
+              department={person.department}
+              email={person.email}
+              photo={person.photo}
+            />
+          ))}
+          </div>
+                )}  
             </div>
             <Separator />
         </section>

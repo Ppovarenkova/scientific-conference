@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     React, ConferenceDay, Session,
-    Talk, Participant, Abstract
+    Talk, Participant, Abstract, Organizer, OrganizingCommittee
 )
 
 
@@ -13,10 +13,12 @@ class ReactSerializer(serializers.ModelSerializer):
 
 class ParticipantSerializer(serializers.ModelSerializer):
     abstract_id = serializers.IntegerField(source="abstract.id", read_only=True)
+    photo = serializers.ImageField(required=False, allow_null=True)
+
 
     class Meta:
         model = Participant
-        fields = ["id", "name", "affiliation", "email", "abstract_id"]
+        fields = ["id", "name", "affiliation", "email", "abstract_id","photo"]
 
 
 class AbstractSerializer(serializers.ModelSerializer):
@@ -38,6 +40,7 @@ class AbstractSerializer(serializers.ModelSerializer):
 class TalkSerializer(serializers.ModelSerializer):
     participant = ParticipantSerializer(read_only=True)
     abstract = AbstractSerializer(read_only=True)
+    abstract_id = serializers.IntegerField(source="abstract.id", read_only=True)
 
     class Meta:
         model = Talk
@@ -51,6 +54,7 @@ class TalkSerializer(serializers.ModelSerializer):
             "abstract",
             "session",
             "day",
+            "abstract_id",
         ]
 
 
@@ -112,3 +116,13 @@ class ConferenceDaySerializer(serializers.ModelSerializer):
 
         items.sort(key=lambda x: x["start_time"])
         return TimelineItemSerializer(items, many=True).data
+    
+class OrganizerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organizer
+        fields = ["id", "name", "department", "email", "photo"]
+
+class OrganizingCommitteeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizingCommittee
+        fields = ["id", "name", "department", "email", "photo"]

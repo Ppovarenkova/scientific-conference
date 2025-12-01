@@ -94,11 +94,26 @@
   font-weight: 400;
   width: 150px;
 }
-
 .title {
   font-size: 18px;
       font-family: var(--font-main);
       width: 700px;
+
+}
+
+.linkTitle {
+      all: unset;              
+    cursor: pointer;         
+    display: inline;
+
+  font-size: 18px;
+      font-family: var(--font-main);
+      width: 700px;
+      transition: color 0.2s ease, opacity 0.2s ease;
+}
+.linkTitle:hover {
+    color: var(--hover-color);
+    opacity: 0.8;
 }
 
 /* Coffee break style */

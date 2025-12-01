@@ -64,6 +64,13 @@ class TalkDetailView(generics.RetrieveAPIView):
     queryset = Talk.objects.all()
     serializer_class = TalkSerializer
 
+class OrganizerListAPIView(generics.ListAPIView):
+    queryset = Organizer.objects.all()
+    serializer_class = OrganizerSerializer
+
+class OrganizingCommitteeListAPIView(generics.ListAPIView):
+    queryset = OrganizingCommittee.objects.all()
+    serializer_class = OrganizingCommitteeSerializer
 
 
     
