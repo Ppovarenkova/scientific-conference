@@ -7,6 +7,8 @@
     top:0;
     z-index: 1000;
 }
+
+/* LINKS */
 .whiteLink {
     text-decoration: none;
     color: var(--secondary-color)!important;
@@ -18,63 +20,79 @@
 .whiteLink:hover,
 .whiteLink:focus,
 .whiteLink:active {
-    color: var(--hover-color)!important;  /* сохраняем белый цвет при hover/focus/active */
+    color: var(--hover-color)!important;  
+}
+.venueLink {
+  cursor: pointer !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-
-.navItem {
-  position: relative;
-}
-
-
-.navItem:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  right: -25px; 
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1px;
-  height: 30px;
-  background-color: var(--secondary-color); 
-}
-
+/* LOGO */
 .logo {
   display: flex;
   align-items: center;
   cursor: pointer;
 }
-
 .logoIcon {
   width: 170px;
   height: 70px;
 }
-
 .inner {
   position: relative;
 }
 
-/* Блок Venue */
+
+.navBar > *:not(:last-child) {
+  margin-right: 32px; /*gap-5 */
+}
+.navBar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.navList {
+  display: flex;
+  align-items: center;
+}
+.navItem {
+  position: relative;
+  margin-right: 60px; /* ← РАВНОМЕРНЫЙ ОТСТУП */
+}
+.navItem:last-child {
+  margin-right: 0;
+}
+
+/* VERTICAL SEPARATOR */
+.navItem:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -32px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 30px;
+  background-color: var(--secondary-color);
+}
+
+/* DROPDOWN POSITION */
 .dropdownWrapper {
   position: relative;
 }
 
-/* Стрелочка */
+/*ARROW */
 .arrow {
   font-size: 10px;
   margin-left: 5px;
   transition: transform 0.2s ease;
 }
 
-.dropdownWrapper:hover .arrow {
-  cursor: pointer;
-  transform: rotate(180deg);
-}
-
-/* Выпадающее меню */
+/* DROPDOWN MENU */
 .dropdownMenu {
   position: absolute;
   top: 64px;
-  left: -44px; /* ← держит меню внутри контейнера */
+  left: -80px;
   background: white;
   padding: 10px 0;
   border-radius: 6px;
@@ -84,27 +102,22 @@
   min-width: 180px;
 }
 
-/* Элемент меню */
 .dropdownItem {
   display: block;
   padding: 10px 18px;
   color: #003b87;
   text-decoration: none;
   white-space: nowrap;
+  font-family: var(--font-main);
+  font-size: 18px;
 }
 
 .dropdownItem:hover {
   background: #eaf0ff;
 }
 
-/* Анимация плавного появления */
+/* FADE IN ANIMATION */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.dropdownTrigge {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
 }
