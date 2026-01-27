@@ -14,6 +14,7 @@ import Participants from './pages/ParticipantsPage';
 import AbstractsPage from './pages/AbstractsPage';
 import RegistrationPage from './pages/RegistrationPage';
 import ProgramPage from './pages/ProgramPage';
+import AdminPanel from './components/AdminPanel/AdminPanel';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/abstracts" element={<AbstractsPage />} />
           <Route path="/registration" element={<RegistrationPage />} />
           <Route path="/program" element={<ProgramPage />} />
+          <Route path="/admin-panel" element={<AdminPanel />} />
         </Routes>
         <Footer />
       </Container>

@@ -1,31 +1,30 @@
 # Create your views here.
 
 from rest_framework.views import APIView
-from . models import *
-from rest_framework.response import Response
 from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from .models import *
 from .serializers import *
-from .serializers import ConferenceDaySerializer
 
-
-# Create your views here.
 
 class ReactView(APIView):
-  
     serializer_class = ReactSerializer
 
     def get(self, request):
-        detail = [ {"name": detail.name,"detail": detail.detail} 
-        for detail in React.objects.all()]
+        detail = [{"name": detail.name, "detail": detail.detail} 
+                  for detail in React.objects.all()]
         return Response(detail)
 
     def post(self, request):
-
         serializer = ReactSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return  Response(serializer.data)
-        
+            return Response(serializer.data)
+
+
 # Program: all days with timeline
 class ProgramView(generics.ListAPIView):
     queryset = ConferenceDay.objects.all().order_by("date")
@@ -64,13 +63,24 @@ class TalkDetailView(generics.RetrieveAPIView):
     queryset = Talk.objects.all()
     serializer_class = TalkSerializer
 
+
 class OrganizerListAPIView(generics.ListAPIView):
     queryset = Organizer.objects.all()
     serializer_class = OrganizerSerializer
+
 
 class OrganizingCommitteeListAPIView(generics.ListAPIView):
     queryset = OrganizingCommittee.objects.all()
     serializer_class = OrganizingCommitteeSerializer
 
 
-    
+# Admin Panel - JWT
+class AdminPanelView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        return Response({
+            "message": "Welcome to admin panel",
+            "user": request.user.username
+        })

@@ -1,15 +1,29 @@
-import styles from './Footer.module.css';   
+import styles from './Footer.module.css';
 import LogoIcon from '../../assets/logoWhite.png';
+import { useState } from "react";
+import { useLocation } from "react-router-dom";
+import AdminLoginModal from '../AdminLoginModal/AdminLoginModal';
 
 export default function Footer() {
-    function Logo() {
-        return (
-            <div className={styles.logo}>
-                <img className ={styles.logoIcon} src={LogoIcon} alt="Logo" />
-            </div>
-        )
-    }
-    
+  const location = useLocation();
+  const isAdminPage = location.pathname === "/admin-panel";
+  const isLoggedIn = !!localStorage.getItem("access_token");
+
+  function Logo() {
+    return (
+      <div className={styles.logo}>
+        <img className={styles.logoIcon} src={LogoIcon} alt="Logo" />
+      </div>
+    )
+  }
+  
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+
+  function openAdmin(e) {
+    e.preventDefault();
+    setIsAdminOpen(true);
+  }
+  
   return (
     <footer className={styles.footer}>
       <div className={styles.footerContainer}>
@@ -57,14 +71,29 @@ export default function Footer() {
         </div>
       </div>
 
-       <hr className={styles.separator} />
+      <hr className={styles.separator} />
 
       <div className={`container ${styles.bottomRow}`}>
         <p className={styles.bottomText}>©2025 MMG, FNSPE CTU in Prague</p>
-        <a href="#" className={styles.adminLink}>
-          Administration
-        </a>
+        {!isAdminPage && !isLoggedIn && (
+          
+            <a href="#"
+            className={styles.adminLink}
+            onClick={openAdmin}
+          >
+            Administration
+          </a>
+        )}
       </div>
+      {isAdminOpen && (
+        <AdminLoginModal
+          onClose={() => setIsAdminOpen(false)}
+          onSuccess={() => {
+            setIsAdminOpen(false);
+            window.location.href = "/admin-panel";
+          }}
+        />
+      )}
     </footer>
   );
 }

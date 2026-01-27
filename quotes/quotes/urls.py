@@ -19,12 +19,15 @@ from django.urls import path, include
 from core.views import ReactView
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('wel/', ReactView.as_view(), name="something"),
     path("api/", include("core.urls")),
+    # AUTH
+    path("api/auth/login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
 ]
 
 if settings.DEBUG:
