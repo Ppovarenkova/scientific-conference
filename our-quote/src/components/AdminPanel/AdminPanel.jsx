@@ -1,88 +1,144 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './AdminPanel.module.css';
+import Loader from '../ui/Loader/Loader';
+import { Link } from 'react-router-dom';
+import Title from '../ui/Title/Title';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { library } from '@fortawesome/fontawesome-svg-core'
+
+/* import all the icons in Free Solid, Free Regular, and Brands styles */
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { far } from '@fortawesome/free-regular-svg-icons'
+import { fab } from '@fortawesome/free-brands-svg-icons'
 
 export default function AdminPanel() {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+    library.add(fas, far, fab)
+    const [data, setData] = useState(null);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    async function fetchAdminData() {
-      const token = localStorage.getItem("access_token");
-      
-      if (!token) {
-        console.log("No token found");
-        navigate("/");
-        return;
-      }
+    useEffect(() => {
+        async function fetchAdminData() {
+            const token = localStorage.getItem("access_token");
 
-      console.log("Fetching with token:", token); // Для отладки
+            if (!token) {
+                console.log("No token found");
+                navigate("/");
+                return;
+            }
 
-      try {
-        const res = await fetch("http://localhost:8000/api/admin-panel/", {
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
-        });
+            console.log("Fetching with token:", token); // For debugging
 
-        if (!res.ok) {
-          console.log("Response not OK:", res.status);
-          setError("Access denied");
-          setLoading(false);
-          // Удаляем невалидный токен
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
-          setTimeout(() => navigate("/"), 2000);
-          return;
+            try {
+                const res = await fetch("http://localhost:8000/api/admin-panel/", {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                if (!res.ok) {
+                    console.log("Response not OK:", res.status);
+                    setError("Access denied");
+                    setLoading(false);
+                    // delete tokens and redirect after delay
+                    localStorage.removeItem("access_token");
+                    localStorage.removeItem("refresh_token");
+                    setTimeout(() => navigate("/"), 2000);
+                    return;
+                }
+
+                const responseData = await res.json();
+                console.log("Admin data:", responseData);
+                setData(responseData);
+                setLoading(false);
+            } catch (err) {
+                console.error("Fetch error:", err);
+                setError("Connection error");
+                setLoading(false);
+            }
         }
 
-        const responseData = await res.json();
-        console.log("Admin data:", responseData);
-        setData(responseData);
-        setLoading(false);
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setError("Connection error");
-        setLoading(false);
-      }
+        fetchAdminData();
+    }, [navigate]);
+
+    function handleLogout() {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        navigate("/");
     }
 
-    fetchAdminData();
-  }, [navigate]);
+    if (loading) {
+        return (
+            <Loader />
+        );
+    }
 
-  function handleLogout() {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    navigate("/");
-  }
+    if (error) {
+        return (
+            <div className={styles.container}>
+                <Title >{error}</Title>
+                <p className={styles.redirecting}>Your session has expired. Redirecting to home...</p>
+            </div>
+        );
+    }
 
-  if (loading) {
     return (
-      <div className={styles.container}>
-        <p>Loading...</p>
-      </div>
-    );
-  }
+        <div className={styles.container}>
+            <Title text="Admin Panel"></Title>
+            {/*<p>{data?.message}</p>*/}
+            {/*<p>User: {data?.user}</p>*/}
+            <div className={styles.buttonGrid}>
+                <Link to="/admin-panel/participants-info" className={styles.adminButton}>
+                    <span className={styles.iconWrapper}>
+                        <FontAwesomeIcon icon="fa-solid fa-user-group" className={styles.adminIcon}/>
+                    </span>
+                    <h3 className={styles.buttonTitle}>Participants Info</h3>
+                    <p className={styles.description}>View all participants</p>
+                </Link>
 
-  if (error) {
-    return (
-      <div className={styles.container}>
-        <p className={styles.error}>{error}</p>
-        <p>Redirecting to home...</p>
-      </div>
-    );
-  }
+                <Link to="/admin-panel/edit-participants" className={styles.adminButton}>
+                    <span className={styles.iconWrapper}>
+                        <FontAwesomeIcon icon="fa-solid fa-user-gear" className={styles.adminIcon}/>
+                    </span>
+                    <h3 className={styles.buttonTitle}>Edit Participants</h3>
+                    <p className={styles.description}>Add, edit or remove participants</p>
+                </Link>
 
-  return (
-    <div className={styles.container}>
-      <h1>Admin Panel</h1>
-      <p>{data?.message}</p>
-      <p>User: {data?.user}</p>
-      <button onClick={handleLogout}>Logout</button>
-      
-      {/* Здесь добавьте ваш функционал админ-панели */}
-    </div>
-  );
+                <Link to="/admin-panel/edit-abstracts" className={styles.adminButton}>
+                    <span className={styles.iconWrapper}>
+                        <FontAwesomeIcon icon="fa-solid fa-newspaper" className={styles.adminIcon} />
+                    </span>
+                    <h3 className={styles.buttonTitle}>Edit Abstracts</h3>
+                    <p className={styles.description}>Manage abstract submissions</p>
+                </Link>
+
+                <Link to="/admin-panel/edit-program" className={styles.adminButton}>
+                    <span className={styles.iconWrapper}>
+                        <FontAwesomeIcon icon="fa-solid fa-calendar" className={styles.adminIcon} />
+                    </span>
+                    <h3 className={styles.buttonTitle}>Edit Program</h3>
+                    <p className={styles.description}>Manage conference schedule</p>
+                </Link>
+
+                <Link to="/admin-panel/edit-web-info" className={styles.adminButton}>
+                    <span className={styles.iconWrapper}>
+                        <FontAwesomeIcon icon="fa-solid fa-globe" className={styles.adminIcon}/>
+                    </span>
+                    <h3 className={styles.buttonTitle}>Edit Web Info</h3>
+                    <p className={styles.description}>Update website content</p>
+                </Link>
+
+                <button className={styles.adminButton}>
+                    <span className={styles.iconWrapper}>
+                        <FontAwesomeIcon icon="fa-solid fa-download" className={styles.adminIcon}/>
+                    </span>
+                    <h3 className={styles.buttonTitle}>Download Program PDF</h3>
+                    <p className={styles.description}>Export conference program</p>
+                </button>
+            </div>
+            <button className={styles.logoutButton} onClick={handleLogout}>Logout</button>
+        </div >
+    );
 }

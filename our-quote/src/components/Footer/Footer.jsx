@@ -7,7 +7,6 @@ import AdminLoginModal from '../AdminLoginModal/AdminLoginModal';
 export default function Footer() {
   const location = useLocation();
   const isAdminPage = location.pathname === "/admin-panel";
-  const isLoggedIn = !!localStorage.getItem("access_token");
 
   function Logo() {
     return (
@@ -75,9 +74,9 @@ export default function Footer() {
 
       <div className={`container ${styles.bottomRow}`}>
         <p className={styles.bottomText}>©2025 MMG, FNSPE CTU in Prague</p>
-        {!isAdminPage && !isLoggedIn && (
+        {!isAdminPage && (
           
-            <a href="#"
+           <a href="#"
             className={styles.adminLink}
             onClick={openAdmin}
           >
