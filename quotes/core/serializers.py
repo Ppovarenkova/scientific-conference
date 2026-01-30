@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     React, ConferenceDay, Session,
-    Talk, Participant, Abstract, Organizer, OrganizingCommittee
+    Talk, Participant, Abstract, Organizer, OrganizingCommittee, ParticipantSubmission
 )
 
 
@@ -126,3 +126,28 @@ class OrganizingCommitteeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganizingCommittee
         fields = ["id", "name", "department", "email", "photo"]
+
+
+class ParticipantSubmissionSerializer(serializers.ModelSerializer):
+    stay_duration = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = ParticipantSubmission
+        fields = [
+            'id', 'name', 'email', 'affiliation', 'photo',
+            'abstract_title', 'abstract_text', 
+            'additional_authors', 'additional_affiliations',
+            'arrival_date', 'departure_date', 'stay_duration',
+            'status', 'submitted_at', 'reviewed_at', 'admin_notes',
+            'published_participant', 'published_abstract'
+        ]
+        read_only_fields = ['submitted_at', 'reviewed_at', 'published_participant', 'published_abstract', 'stay_duration']
+    
+    def validate(self, data):
+        # Проверка дат
+        if data.get('departure_date') and data.get('arrival_date'):
+            if data['departure_date'] <= data['arrival_date']:
+                raise serializers.ValidationError({
+                    'departure_date': 'Departure date must be after arrival date'
+                })
+        return data

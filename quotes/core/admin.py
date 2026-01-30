@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ConferenceDay, Session, Talk, Participant, Abstract, Organizer, OrganizingCommittee
+from .models import ConferenceDay, Session, Talk, Participant, Abstract, Organizer, OrganizingCommittee, ParticipantSubmission
 
 
 class TalkInline(admin.TabularInline):
@@ -64,3 +64,21 @@ class OrganizerAdmin(admin.ModelAdmin):
 class OrganizingCommitteeAdmin(admin.ModelAdmin):
     list_display = ("name", "department", "email")
     search_fields = ("name", "department")  
+
+
+
+@admin.register(ParticipantSubmission)
+class ParticipantSubmissionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'email', 'abstract_title', 'status', 'submitted_at']
+    list_filter = ['status', 'submitted_at']
+    search_fields = ['name', 'email', 'abstract_title']
+    readonly_fields = ['submitted_at', 'reviewed_at']
+    
+    actions = ['publish_selected']
+    
+    def publish_selected(self, request, queryset):
+        for submission in queryset:
+            if submission.status != 'approved':
+                submission.publish()
+        self.message_user(request, f"{queryset.count()} submissions published")
+    publish_selected.short_description = "Publish selected submissions"

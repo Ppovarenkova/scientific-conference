@@ -5,6 +5,9 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.decorators import api_view
+from rest_framework import status
+from rest_framework.permissions import AllowAny
 
 from .models import *
 from .serializers import *
@@ -84,3 +87,22 @@ class AdminPanelView(APIView):
             "message": "Welcome to admin panel",
             "user": request.user.username
         })
+
+# Публичная форма регистрации
+class SubmissionCreateView(generics.CreateAPIView):
+    queryset = ParticipantSubmission.objects.all()
+    serializer_class = ParticipantSubmissionSerializer
+    permission_classes = [AllowAny]
+
+# Админ: список всех заявок
+class SubmissionListView(generics.ListAPIView):
+    queryset = ParticipantSubmission.objects.all()
+    serializer_class = ParticipantSubmissionSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    
+    def get_queryset(self):
+        status_filter = self.request.query_params.get('status', None)
+        if status_filter:
+            return ParticipantSubmission.objects.filter(status=status_filter)
+        return ParticipantSubmission.objects.all()

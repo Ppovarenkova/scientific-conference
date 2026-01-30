@@ -127,3 +127,110 @@ class OrganizingCommittee(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class ParticipantSubmission(models.Model):
+    """Заявки от участников - до публикации"""
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    # Информация об участнике
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    affiliation = models.CharField(max_length=500)
+    photo = models.ImageField(upload_to='submissions/photos/', blank=True, null=True)
+    
+    # Информация об абстракте
+    abstract_title = models.CharField(max_length=500, blank=True)
+    abstract_text = models.TextField(blank=True)
+    additional_authors = models.CharField(max_length=500, blank=True, help_text="Co-authors")
+    additional_affiliations = models.TextField(blank=True, help_text="Affiliations of co-authors")
+    
+    # Даты пребывания
+    arrival_date = models.DateField()
+    departure_date = models.DateField()
+    
+    # Метаданные
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+    admin_notes = models.TextField(blank=True, help_text="Internal notes for admins")
+    
+    # Связи с опубликованными данными
+    published_participant = models.ForeignKey(
+        'Participant', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='submission'
+    )
+    published_abstract = models.ForeignKey(
+        'Abstract', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='submission'
+    )
+    
+    class Meta:
+        ordering = ['-submitted_at']
+    
+    def __str__(self):
+        return f"{self.name} - {self.abstract_title or 'No title'} ({self.status})"
+    
+    @property
+    def stay_duration(self):
+        """Длительность пребывания в днях"""
+        if self.arrival_date and self.departure_date:
+            return (self.departure_date - self.arrival_date).days
+        return 0
+    
+    def publish(self):
+        """Публикация: создание Participant и Abstract"""
+        from django.utils import timezone
+        
+        # Создаем/обновляем участника
+        participant, created = Participant.objects.update_or_create(
+            email=self.email,
+            defaults={
+                'name': self.name,
+                'affiliation': self.affiliation,
+                'photo': self.photo,
+            }
+        )
+        
+        # Создаем/обновляем абстракт (если заполнен)
+        abstract = None
+        if self.abstract_title or self.abstract_text:
+            # Комбинируем основного автора и доп. авторов
+            all_authors = self.name
+            if self.additional_authors:
+                all_authors += f", {self.additional_authors}"
+            
+            # Комбинируем affiliations
+            all_affiliations = self.affiliation
+            if self.additional_affiliations:
+                all_affiliations += f"\n{self.additional_affiliations}"
+            
+            abstract, created = Abstract.objects.update_or_create(
+                participant=participant,
+                defaults={
+                    'title': self.abstract_title or f"Presentation by {self.name}",
+                    'text': self.abstract_text,
+                    'authors': all_authors,
+                    'department': all_affiliations,
+                }
+            )
+        
+        # Обновляем submission
+        self.published_participant = participant
+        self.published_abstract = abstract
+        self.status = 'approved'
+        self.reviewed_at = timezone.now()
+        self.save()
+        
+        return participant, abstract

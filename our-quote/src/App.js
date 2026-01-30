@@ -4,13 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ScrollToTop from './components/ui/ScrollToTop';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { library } from '@fortawesome/fontawesome-svg-core'
 
-/* import all the icons in Free Solid, Free Regular, and Brands styles */
-import { fas } from '@fortawesome/free-solid-svg-icons'
-import { far } from '@fortawesome/free-regular-svg-icons'
-import { fab } from '@fortawesome/free-brands-svg-icons'
 
 
 import Container from "./components/Container/Container";
@@ -24,14 +18,13 @@ import RegistrationPage from './pages/RegistrationPage';
 import ProgramPage from './pages/ProgramPage';
 import AdminPanel from './components/AdminPanel/AdminPanel';
 import ParticipantsInfo from './components/ParticipantsInfo/ParticipantsInfo';
-import EditParticipants from './EditParticipants/EditParticipants';
+import EditParticipants from './components/EditParticipants/EditParticipants';
 import EditAbstracts from './components/EditAbstracts/EditAbstracts';
 import EditProgram from './components/EditProgram/EditProgram';
 import EditWebInfo from './components/EditWebInfo/EditWebInfo';
 
 
 function App() {
-  library.add(fas, far, fab)
   return (
     <Router>
       <ScrollToTop/>

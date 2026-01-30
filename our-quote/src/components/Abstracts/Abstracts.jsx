@@ -15,11 +15,11 @@ export default function Abstracts() {
             .then(res => res.json())
             .then(data => {
                 setAbstracts(data);
-                setLoading(false);         // <- 🔥 ОБЯЗАТЕЛЬНО
+                setLoading(false);         
             })
-            .catch(() => setLoading(false)); // на случай ошибки
+            .catch(() => setLoading(false)); 
     }, []);
-    // 🔥 АВТОСКРОЛЛ ПО ID ПРИ ПЕРЕХОДЕ ИЗ PARTICIPANTS
+
     useEffect(() => {
         if (loading) return;
         const params = new URLSearchParams(location.search);

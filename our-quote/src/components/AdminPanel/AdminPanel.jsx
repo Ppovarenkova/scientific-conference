@@ -71,7 +71,11 @@ export default function AdminPanel() {
 
     if (loading) {
         return (
-            <Loader />
+            <div className={styles.container}>
+                <Title text="Admin Panel"></Title>
+                 <Loader />
+            </div>
+           
         );
     }
 
