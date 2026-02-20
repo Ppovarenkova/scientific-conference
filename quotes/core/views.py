@@ -8,6 +8,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.permissions import AllowAny
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from .models import *
 from .serializers import *
@@ -93,6 +94,7 @@ class SubmissionCreateView(generics.CreateAPIView):
     queryset = ParticipantSubmission.objects.all()
     serializer_class = ParticipantSubmissionSerializer
     permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
 # Админ: список всех заявок
 class SubmissionListView(generics.ListAPIView):
@@ -106,3 +108,46 @@ class SubmissionListView(generics.ListAPIView):
         if status_filter:
             return ParticipantSubmission.objects.filter(status=status_filter)
         return ParticipantSubmission.objects.all()
+
+
+class SubmissionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ParticipantSubmission.objects.all()
+    serializer_class = ParticipantSubmissionSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+
+# Admin: publish submission
+@api_view(['POST'])
+def publish_submission(request, pk):
+    """Publish submission - creates Participant and Abstract"""
+    if not request.user.is_staff:
+        return Response({"error": "Admin only"}, status=403)
+    
+    try:
+        submission = ParticipantSubmission.objects.get(pk=pk)
+    except ParticipantSubmission.DoesNotExist:
+        return Response({"error": "Submission not found"}, status=404)
+    
+    if submission.status == 'approved':
+        return Response({
+            "message": "Already published",
+            "participant_id": submission.published_participant.id if submission.published_participant else None,
+            "abstract_id": submission.published_abstract.id if submission.published_abstract else None
+        }, status=200)
+    
+    try:
+        participant, abstract = submission.publish()
+        
+        return Response({
+            "message": "Published successfully",
+            "participant_id": participant.id,
+            "abstract_id": abstract.id if abstract else None,
+            "participant_name": participant.name,
+            "abstract_title": abstract.title if abstract else None
+        }, status=200)
+    except Exception as e:
+        return Response({
+            "error": f"Failed to publish: {str(e)}"
+        }, status=500)

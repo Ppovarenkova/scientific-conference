@@ -193,17 +193,46 @@ class ParticipantSubmission(models.Model):
         """Публикация: создание Participant и Abstract"""
         from django.utils import timezone
         
-        # Создаем/обновляем участника
-        participant, created = Participant.objects.update_or_create(
-            email=self.email,
-            defaults={
-                'name': self.name,
-                'affiliation': self.affiliation,
-                'photo': self.photo,
-            }
-        )
+         # Если уже опубликовано, используем существующие записи
+        if self.published_participant:
+            participant = self.published_participant
+        else:
+            # Ищем участника по email (если email уникален и заполнен)
+            if self.email:
+                try:
+                    participant = Participant.objects.get(email=self.email)
+                    # Обновляем данные существующего участника
+                    participant.name = self.name
+                    participant.affiliation = self.affiliation
+                    if self.photo:
+                        participant.photo = self.photo
+                    participant.save()
+                except Participant.DoesNotExist:
+                    # Создаем нового участника
+                    participant = Participant.objects.create(
+                        name=self.name,
+                        email=self.email,
+                        affiliation=self.affiliation,
+                        photo=self.photo,
+                    )
+                except Participant.MultipleObjectsReturned:
+                    # Если несколько с таким email, создаем нового
+                    participant = Participant.objects.create(
+                        name=self.name,
+                        email=self.email,
+                        affiliation=self.affiliation,
+                        photo=self.photo,
+                    )
+            else:
+                # Если email пустой, всегда создаем нового
+                participant = Participant.objects.create(
+                    name=self.name,
+                    email=self.email,
+                    affiliation=self.affiliation,
+                    photo=self.photo,
+                )
         
-        # Создаем/обновляем абстракт (если заполнен)
+        # Создаем/обновляем абстракт (только если есть данные)
         abstract = None
         if self.abstract_title or self.abstract_text:
             # Комбинируем основного автора и доп. авторов
@@ -216,15 +245,23 @@ class ParticipantSubmission(models.Model):
             if self.additional_affiliations:
                 all_affiliations += f"\n{self.additional_affiliations}"
             
-            abstract, created = Abstract.objects.update_or_create(
-                participant=participant,
-                defaults={
-                    'title': self.abstract_title or f"Presentation by {self.name}",
-                    'text': self.abstract_text,
-                    'authors': all_authors,
-                    'department': all_affiliations,
-                }
-            )
+            # Проверяем, есть ли уже абстракт у этого участника
+            if hasattr(participant, 'abstract') and participant.abstract:
+                abstract = participant.abstract
+                abstract.title = self.abstract_title or f"Presentation by {self.name}"
+                abstract.text = self.abstract_text
+                abstract.authors = all_authors
+                abstract.department = all_affiliations
+                abstract.save()
+            else:
+                # Создаем новый абстракт
+                abstract = Abstract.objects.create(
+                    participant=participant,
+                    title=self.abstract_title or f"Presentation by {self.name}",
+                    text=self.abstract_text,
+                    authors=all_authors,
+                    department=all_affiliations,
+                )
         
         # Обновляем submission
         self.published_participant = participant
@@ -234,3 +271,24 @@ class ParticipantSubmission(models.Model):
         self.save()
         
         return participant, abstract
+    
+    def delete(self, *args, **kwargs):
+        """Переопределяем удаление для очистки связанных объектов"""
+        
+        # Если submission был опубликован (approved), удаляем Participant и Abstract
+        if self.status == 'approved':
+            # Удаляем Abstract
+            if self.published_abstract:
+                # Также удалится связанный Talk (если есть) из-за CASCADE
+                self.published_abstract.delete()
+            
+            # Удаляем Participant
+            if self.published_participant:
+                # Это также удалит Abstract если он связан через OneToOne
+                self.published_participant.delete()
+        
+        # Удаляем фото submission
+        if self.photo:
+            self.photo.delete(save=False)
+        
+        super().delete(*args, **kwargs)

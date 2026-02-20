@@ -11,7 +11,7 @@ from .views import (
     TalkDetailView,
     OrganizerListAPIView,
     OrganizingCommitteeListAPIView,
-    AdminPanelView, SubmissionCreateView, SubmissionListView, 
+    AdminPanelView, SubmissionCreateView, SubmissionListView, SubmissionDetailView, publish_submission,
 )
 
 urlpatterns = [
@@ -32,4 +32,6 @@ urlpatterns = [
     # Admin endpoints
     path("admin-panel/", AdminPanelView.as_view(), name="admin-panel"),
     path("admin/submissions/", SubmissionListView.as_view(), name="submissions-list"),
+    path("admin/submissions/<int:pk>/", SubmissionDetailView.as_view(), name="submission-detail"),
+    path("admin/submissions/<int:pk>/publish/", publish_submission, name="submission-publish"),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

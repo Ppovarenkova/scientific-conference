@@ -151,3 +151,66 @@ class ParticipantSubmissionSerializer(serializers.ModelSerializer):
                     'departure_date': 'Departure date must be after arrival date'
                 })
         return data
+
+    def update(self, instance, validated_data):
+        # Handle photo separately
+        photo = validated_data.pop('photo', None)
+        
+        # Update all fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        # Update photo if provided
+        if photo:
+            instance.photo = photo
+        
+        instance.save()
+
+        # If submission is approved, update published Participant and Abstract
+        if instance.status == 'approved' and instance.published_participant:
+            self._update_published_data(instance)
+        
+        return instance
+    
+    def _update_published_data(self, instance):
+        """Update published Participant and Abstract with new data"""
+        # Update Participant
+        participant = instance.published_participant
+        participant.name = instance.name
+        participant.email = instance.email
+        participant.affiliation = instance.affiliation
+        if instance.photo:
+            participant.photo = instance.photo
+        participant.save()
+        
+        # Update or create Abstract
+        if instance.abstract_title or instance.abstract_text:
+            # Combine authors
+            all_authors = instance.name
+            if instance.additional_authors:
+                all_authors += f", {instance.additional_authors}"
+            
+            # Combine affiliations
+            all_affiliations = instance.affiliation
+            if instance.additional_affiliations:
+                all_affiliations += f"\n{instance.additional_affiliations}"
+            
+            if instance.published_abstract:
+                # Update existing abstract
+                abstract = instance.published_abstract
+                abstract.title = instance.abstract_title or f"Presentation by {instance.name}"
+                abstract.text = instance.abstract_text
+                abstract.authors = all_authors
+                abstract.department = all_affiliations
+                abstract.save()
+            else:
+                # Create new abstract
+                abstract = Abstract.objects.create(
+                    participant=participant,
+                    title=instance.abstract_title or f"Presentation by {instance.name}",
+                    text=instance.abstract_text,
+                    authors=all_authors,
+                    department=all_affiliations,
+                )
+                instance.published_abstract = abstract
+                instance.save()

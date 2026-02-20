@@ -6,7 +6,7 @@ import AdminLoginModal from '../AdminLoginModal/AdminLoginModal';
 
 export default function Footer() {
   const location = useLocation();
-  const isAdminPage = location.pathname === "/admin-panel";
+  const isAdminPage = location.pathname.startsWith("/admin-panel");
 
   function Logo() {
     return (

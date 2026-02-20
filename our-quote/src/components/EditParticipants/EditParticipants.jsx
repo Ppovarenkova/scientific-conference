@@ -4,11 +4,14 @@ import styles from './EditParticipants.module.css';
 import Title from '../ui/Title/Title';
 import avatar from '../../assets/avatar.png';
 import Loader from '../ui/Loader/Loader';
+import { fetchWithAuth } from '../../utils/api';
+import EditSubmissionModal from '../EditSubmissionModal/EditSubmissionModal';
 
 export default function EditParticipants() {
   const [submissions, setSubmissions] = useState([]);
   const [filter, setFilter] = useState('pending');
   const [loading, setLoading] = useState(true);
+  const [editingSubmission, setEditingSubmission] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,11 +21,26 @@ export default function EditParticipants() {
   async function fetchSubmissions() {
     setLoading(true);
     const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      alert("Session expired. Please login again.");
+      navigate("/");
+      return;
+    }
     
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/submissions/?status=${filter}`, {
+      const res = await fetchWithAuth(`http://localhost:8000/api/admin/submissions/?status=${filter}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
+
+      if (res.status === 401) {
+        // Token expired or invalid
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        alert("Session expired. Please login again.");
+        navigate("/");
+        return;
+      }
 
       if (res.ok) {
         const data = await res.json();
@@ -42,41 +60,80 @@ export default function EditParticipants() {
     const token = localStorage.getItem("access_token");
     
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/submissions/${id}/publish/`, {
+      const res = await fetchWithAuth(`http://localhost:8000/api/admin/submissions/${id}/publish/`, {
         method: 'POST',
         headers: { "Authorization": `Bearer ${token}` }
       });
 
+      if (res.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        alert("Session expired. Please login again.");
+        navigate("/");
+        return;
+      }
+
       if (res.ok) {
-        alert('✅ Published successfully!');
+        alert(' Published successfully!');
         fetchSubmissions();
       } else {
         const error = await res.json();
-        alert(`❌ Failed to publish: ${error.error || 'Unknown error'}`);
+        alert(`Failed to publish: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
-      alert('❌ Connection error');
+      alert('Connection error');
     }
   }
 
   async function deleteSubmission(id) {
-    if (!window.confirm('Delete this submission permanently?')) return;
+const submission = submissions.find(s => s.id === id);
+  const isApproved = submission?.status === 'approved';
+  
+  const confirmMessage = isApproved 
+    ? 'Delete this submission permanently?\n\nWARNING: This will also remove the published Participant and Abstract from the public site!'
+    : 'Delete this submission permanently? This cannot be undone.';
+  
+  if (!window.confirm(confirmMessage)) return;
 
-    const token = localStorage.getItem("access_token");
-    
-    try {
-      const res = await fetch(`http://localhost:8000/api/admin/submissions/${id}/`, {
-        method: 'DELETE',
-        headers: { "Authorization": `Bearer ${token}` }
-      });
+  const token = localStorage.getItem("access_token");
+  
+  if (!token) {
+    alert("Session expired. Please login again.");
+    navigate("/");
+    return;
+  }
 
-      if (res.ok) {
-        alert('✅ Deleted successfully');
-        fetchSubmissions();
-      }
-    } catch (error) {
-      alert('❌ Connection error');
+  try {
+    const res = await fetch(`http://localhost:8000/api/admin/submissions/${id}/`, {
+      method: 'DELETE',
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (res.status === 401) {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      alert("Session expired. Please login again.");
+      navigate("/");
+      return;
     }
+
+    if (res.ok || res.status === 204) {
+      if (isApproved) {
+        alert(' Deleted successfully\n\nThe Participant and Abstract have been removed from the public site.');
+      } else {
+        alert(' Deleted successfully');
+      }
+      fetchSubmissions();
+    } else {
+      const errorText = await res.text();
+      console.error("Delete error:", errorText);
+      alert(` Failed to delete (${res.status}): ${errorText}`);
+    }
+  } catch (error) {
+    console.error("Delete error:", error);
+    alert(`Connection error: ${error.message}`);
+  }
+
   }
 
   function formatDate(dateString) {
@@ -91,6 +148,13 @@ export default function EditParticipants() {
     if (!photoPath) return null;
     if (photoPath.startsWith('http')) return photoPath;
     return `http://localhost:8000${photoPath}`;
+  }
+
+  function handleSaveSubmission(updatedSubmission) {
+    // Update in local state
+    setSubmissions(prev => 
+      prev.map(sub => sub.id === updatedSubmission.id ? updatedSubmission : sub)
+    );
   }
 
   if (loading) {
@@ -269,7 +333,7 @@ export default function EditParticipants() {
                 )}
                 <button 
                   className={styles.editBtn}
-                  onClick={() => navigate(`/admin-panel/edit-submission/${sub.id}`)}
+                  onClick={() => setEditingSubmission(sub)}
                 >
                   Edit
                 </button>
@@ -283,6 +347,13 @@ export default function EditParticipants() {
             </div>
           ))}
         </div>
+      )}
+      {editingSubmission && (
+        <EditSubmissionModal
+          submission={editingSubmission}
+          onClose={() => setEditingSubmission(null)}
+          onSave={handleSaveSubmission}
+        />
       )}
     </div>
   );

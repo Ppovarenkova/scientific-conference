@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import Title from '../ui/Title/Title';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
+import { fetchWithAuth } from '../../utils/api';
 
 /* import all the icons in Free Solid, Free Regular, and Brands styles */
 import { fas } from '@fortawesome/free-solid-svg-icons'
@@ -32,7 +33,7 @@ export default function AdminPanel() {
             console.log("Fetching with token:", token); // For debugging
 
             try {
-                const res = await fetch("http://localhost:8000/api/admin-panel/", {
+                const res = await fetchWithAuth("http://localhost:8000/api/admin-panel/", {
                     headers: {
                         "Authorization": `Bearer ${token}`
                     }
