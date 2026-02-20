@@ -30,7 +30,7 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.paddingRight = `${scrollbarWidth}px`;
 
-    // Populate form data
+
     if (submission) {
       setFormData({
         name: submission.name || "",
@@ -53,7 +53,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
         );
       }
 
-      // Count words
       if (submission.abstract_text) {
         const words = submission.abstract_text.trim().split(/\s+/).filter(w => w.length > 0);
         setWordCount(words.length);
@@ -73,7 +72,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
       [name]: value
     }));
 
-    // Count words for abstract
     if (name === "abstract_text") {
       const words = value.trim().split(/\s+/).filter(w => w.length > 0);
       setWordCount(words.length);
@@ -127,7 +125,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
 
     let response;
 
-    // If photo was changed, use FormData
     if (photo) {
       const submitData = new FormData();
       Object.keys(formData).forEach(key => {
@@ -145,7 +142,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
         body: submitData,
       });
     } else {
-      // If no photo change, use JSON
       response = await fetch(`http://localhost:8000/api/admin/submissions/${submission.id}/`, {
         method: 'PATCH',
         headers: {
@@ -167,7 +163,7 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
     if (response.ok) {
       const updated = await response.json();
       
-      // Show different message for approved submissions
+
       if (updated.status === 'approved') {
         alert("Changes saved successfully!\n\nThe published Participant and Abstract have been updated on the public site.");
       } else {
@@ -206,7 +202,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
         <Title text={"Edit Submission"} />
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          {/* Photo */}
           <div className={styles.photoSection}>
             {photoPreview ? (
               <div className={styles.photoPreview}>
@@ -236,7 +231,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
           </div>
 
           <div className={styles.formGrid}>
-            {/* Name */}
             <div className={styles.field}>
               <label>Name *</label>
               <input
@@ -248,7 +242,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
               />
             </div>
 
-            {/* Email */}
             <div className={styles.field}>
               <label>Email *</label>
               <input
@@ -260,7 +253,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
               />
             </div>
 
-            {/* Affiliation */}
             <div className={styles.field}>
               <label>Affiliation *</label>
               <input
@@ -272,7 +264,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
               />
             </div>
 
-            {/* Status */}
             <div className={styles.field}>
               <label>Status</label>
               <select
@@ -286,7 +277,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
               </select>
             </div>
 
-            {/* Abstract Title */}
             <div className={styles.fieldFull}>
               <label>Abstract Title</label>
               <input
@@ -297,7 +287,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
               />
             </div>
 
-            {/* Abstract Text */}
             <div className={styles.fieldFull}>
               <label>
                 Abstract Description
@@ -311,7 +300,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
               />
             </div>
 
-            {/* Additional Authors */}
             <div className={styles.fieldFull}>
               <label>Additional Authors</label>
               <input
@@ -322,7 +310,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
               />
             </div>
 
-            {/* Additional Affiliations */}
             <div className={styles.fieldFull}>
               <label>Additional Affiliations</label>
               <textarea
@@ -333,7 +320,7 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
               />
             </div>
 
-            {/* Dates */}
+
             <div className={styles.field}>
               <label>Arrival Date *</label>
               <input
@@ -356,7 +343,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
               />
             </div>
 
-            {/* Admin Notes */}
             <div className={styles.fieldFull}>
               <label>Admin Notes (internal)</label>
               <textarea

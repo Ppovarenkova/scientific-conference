@@ -87,7 +87,7 @@ class ConferenceDaySerializer(serializers.ModelSerializer):
     def get_timeline(self, day):
         items = []
 
-        # standalone talks/breaks/events
+
         for t in Talk.objects.filter(day=day, session__isnull=True).order_by("start_time"):
             items.append({
                 "type": t.talk_type,
@@ -96,7 +96,6 @@ class ConferenceDaySerializer(serializers.ModelSerializer):
                 "data": TalkSerializer(t).data
             })
 
-        # sessions
         for session in day.sessions.all():
             talks = session.talks.all().order_by("start_time")
             if talks.exists():
@@ -144,7 +143,7 @@ class ParticipantSubmissionSerializer(serializers.ModelSerializer):
         read_only_fields = ['submitted_at', 'reviewed_at', 'published_participant', 'published_abstract', 'stay_duration']
     
     def validate(self, data):
-        # Проверка дат
+
         if data.get('departure_date') and data.get('arrival_date'):
             if data['departure_date'] <= data['arrival_date']:
                 raise serializers.ValidationError({
@@ -153,28 +152,27 @@ class ParticipantSubmissionSerializer(serializers.ModelSerializer):
         return data
 
     def update(self, instance, validated_data):
-        # Handle photo separately
+
         photo = validated_data.pop('photo', None)
         
-        # Update all fields
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         
-        # Update photo if provided
+
         if photo:
             instance.photo = photo
         
         instance.save()
 
-        # If submission is approved, update published Participant and Abstract
+
         if instance.status == 'approved' and instance.published_participant:
             self._update_published_data(instance)
         
         return instance
     
     def _update_published_data(self, instance):
-        """Update published Participant and Abstract with new data"""
-        # Update Participant
+
         participant = instance.published_participant
         participant.name = instance.name
         participant.email = instance.email
@@ -183,20 +181,18 @@ class ParticipantSubmissionSerializer(serializers.ModelSerializer):
             participant.photo = instance.photo
         participant.save()
         
-        # Update or create Abstract
+
         if instance.abstract_title or instance.abstract_text:
-            # Combine authors
+
             all_authors = instance.name
             if instance.additional_authors:
                 all_authors += f", {instance.additional_authors}"
             
-            # Combine affiliations
             all_affiliations = instance.affiliation
             if instance.additional_affiliations:
                 all_affiliations += f"\n{instance.additional_affiliations}"
             
             if instance.published_abstract:
-                # Update existing abstract
                 abstract = instance.published_abstract
                 abstract.title = instance.abstract_title or f"Presentation by {instance.name}"
                 abstract.text = instance.abstract_text
@@ -204,7 +200,6 @@ class ParticipantSubmissionSerializer(serializers.ModelSerializer):
                 abstract.department = all_affiliations
                 abstract.save()
             else:
-                # Create new abstract
                 abstract = Abstract.objects.create(
                     participant=participant,
                     title=instance.abstract_title or f"Presentation by {instance.name}",

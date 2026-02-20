@@ -89,14 +89,14 @@ class AdminPanelView(APIView):
             "user": request.user.username
         })
 
-# Публичная форма регистрации
+
 class SubmissionCreateView(generics.CreateAPIView):
     queryset = ParticipantSubmission.objects.all()
     serializer_class = ParticipantSubmissionSerializer
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
-# Админ: список всех заявок
+
 class SubmissionListView(generics.ListAPIView):
     queryset = ParticipantSubmission.objects.all()
     serializer_class = ParticipantSubmissionSerializer
@@ -121,7 +121,6 @@ class SubmissionDetailView(generics.RetrieveUpdateDestroyAPIView):
 # Admin: publish submission
 @api_view(['POST'])
 def publish_submission(request, pk):
-    """Publish submission - creates Participant and Abstract"""
     if not request.user.is_staff:
         return Response({"error": "Admin only"}, status=403)
     
