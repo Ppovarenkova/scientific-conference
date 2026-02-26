@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import avatar from '../../assets/avatar.png';
 import Title from '../ui/Title/Title';
+import Modal from '../ui/Modal/Modal';
+import { useNavigate } from 'react-router-dom';
 
 export default function EditSubmissionModal({ submission, onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -16,20 +18,37 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
     arrival_date: "",
     departure_date: "",
     admin_notes: "",
-    status: "pending",
   });
 
   const [photo, setPhoto] = useState(null);
+  const navigate = useNavigate();
   const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [wordCount, setWordCount] = useState(0);
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    type: 'default'
+  });
+
+  function openModal(config) {
+    setModal({
+      isOpen: true,
+      ...config
+    });
+  }
+
+  function closeModal() {
+    setModal(prev => ({ ...prev, isOpen: false }));
+  }
+
 
   useEffect(() => {
-    // Block scroll
     document.body.style.overflow = 'hidden';
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.paddingRight = `${scrollbarWidth}px`;
-
 
     if (submission) {
       setFormData({
@@ -43,12 +62,11 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
         arrival_date: submission.arrival_date || "",
         departure_date: submission.departure_date || "",
         admin_notes: submission.admin_notes || "",
-        status: submission.status || "pending",
       });
 
       if (submission.photo) {
-        setPhotoPreview(submission.photo.startsWith('http') 
-          ? submission.photo 
+        setPhotoPreview(submission.photo.startsWith('http')
+          ? submission.photo
           : `http://localhost:8000${submission.photo}`
         );
       }
@@ -58,7 +76,7 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
         setWordCount(words.length);
       }
     }
-    
+
     return () => {
       document.body.style.overflow = '';
       document.body.style.paddingRight = '';
@@ -80,7 +98,7 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
-    
+
     if (file) {
       if (!file.type.startsWith('image/')) {
         alert("Please select a valid image file");
@@ -93,7 +111,7 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
       }
 
       setPhoto(file);
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result);
@@ -104,131 +122,163 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
 
   const removePhoto = () => {
     setPhoto(null);
-    setPhotoPreview(submission.photo ? 
-      (submission.photo.startsWith('http') ? submission.photo : `http://localhost:8000${submission.photo}`) 
-      : null
-    );
+    setPhotoPreview(null);
+
+    // Clean the input file
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+      fileInput.value = '';
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-     try {
-    const token = localStorage.getItem("access_token");
-    
-    if (!token) {
-      alert("Session expired. Please login again.");
-      window.location.href = "/";
-      return;
-    }
+    try {
+      const token = localStorage.getItem("access_token");
 
-    let response;
-
-    if (photo) {
-      const submitData = new FormData();
-      Object.keys(formData).forEach(key => {
-        if (formData[key] !== null && formData[key] !== undefined) {
-          submitData.append(key, formData[key]);
-        }
-      });
-      submitData.append('photo', photo);
-
-      response = await fetch(`http://localhost:8000/api/admin/submissions/${submission.id}/`, {
-        method: 'PUT',
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
-        body: submitData,
-      });
-    } else {
-      response = await fetch(`http://localhost:8000/api/admin/submissions/${submission.id}/`, {
-        method: 'PATCH',
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-    }
-
-    if (response.status === 401) {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      alert("Session expired. Please login again.");
-      window.location.href = "/";
-      return;
-    }
-
-    if (response.ok) {
-      const updated = await response.json();
-      
-
-      if (updated.status === 'approved') {
-        alert("Changes saved successfully!\n\nThe published Participant and Abstract have been updated on the public site.");
-      } else {
-        alert("Changes saved successfully!");
+      if (!token) {
+        openModal({
+          title: "Session expired",
+          message: "Please login again.",
+          type: "danger",
+          onConfirm: () => {
+            closeModal();
+            navigate("/");
+          }
+        });
+        return;
       }
-      
-      onSave(updated);
-      onClose();
-    } else {
-      const errorText = await response.text();
-      console.error("Error response:", errorText);
-      alert(`Failed to save (${response.status}): ${errorText}`);
+
+      let response;
+
+      if (photo) {
+        const submitData = new FormData();
+        Object.keys(formData).forEach(key => {
+          if (formData[key] !== null && formData[key] !== undefined) {
+            submitData.append(key, formData[key]);
+          }
+        });
+        submitData.append('photo', photo);
+
+        response = await fetch(`http://localhost:8000/api/admin/submissions/${submission.id}/`, {
+          method: 'PUT',
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+          body: submitData,
+        });
+      } else {
+        response = await fetch(`http://localhost:8000/api/admin/submissions/${submission.id}/`, {
+          method: 'PATCH',
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+      }
+
+      if (response.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        openModal({
+          title: "Session expired",
+          message: "Please login again.",
+          type: "danger",
+          onConfirm: () => {
+            closeModal();
+            navigate("/");
+          }
+        });
+        window.location.href = "/";
+        return;
+      }
+
+      if (response.ok) {
+        const updated = await response.json();
+        openModal({
+          title: "Success",
+          message: "Changes saved successfully!",
+          type: "success",
+          onConfirm: () => {
+            closeModal();
+            onSave(updated);
+            onClose();
+          }
+        });
+      } else {
+        const errorText = await response.text();
+        console.error("Error response:", errorText);
+        alert(`Failed to save (${response.status}): ${errorText}`);
+      }
+    } catch (error) {
+      console.error("Detailed error:", error);
+      openModal({
+        title: "Connection error",
+        message: error.message,
+        type: "danger",
+        onConfirm: closeModal
+      });
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Detailed error:", error);
-    alert(`Connection error: ${error.message}`);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   if (!submission) return null;
 
   return createPortal(
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        <button 
-          className={styles.closeBtn} 
+        <button
+          className={styles.closeBtn}
           onClick={onClose}
           type="button"
         >
           ×
         </button>
 
+        <Title text="Edit Submission" />
 
-        <Title text={"Edit Submission"} />
+        {submission.status === 'approved' && (
+          <div className={styles.approvedNotice}>
+            This submission is published. Changes will update the public Participant and Abstract.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.photoSection}>
-            {photoPreview ? (
-              <div className={styles.photoPreview}>
-                <img src={photoPreview} alt="Preview" />
-                {photo && (
-                  <button 
-                    type="button" 
-                    onClick={removePhoto}
-                    className={styles.removePhoto}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ) : (
-              <img src={avatar} alt="No photo" className={styles.avatarPlaceholder} />
-            )}
-            <label className={styles.uploadButton}>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-                style={{ display: 'none' }}
-              />
-              Change Photo
-            </label>
-          </div>
+  {photoPreview ? (
+    <div className={styles.photoPreview}>
+      <img src={photoPreview} alt="Preview" />
+    </div>
+  ) : (
+    <img src={avatar} alt="No photo" className={styles.avatarPlaceholder} />
+  )}
+  
+  <div className={styles.photoButtons}>
+    <label className={styles.uploadButton}>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handlePhotoChange}
+        style={{ display: 'none' }}
+      />
+      Change Photo
+    </label>
+    
+    {photoPreview && (
+      <button
+        type="button"
+        onClick={removePhoto}
+        className={styles.removeButton}
+      >
+        Remove Photo
+      </button>
+    )}
+  </div>
+</div>
 
           <div className={styles.formGrid}>
             <div className={styles.field}>
@@ -253,7 +303,7 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
               />
             </div>
 
-            <div className={styles.field}>
+            <div className={styles.fieldFull}>
               <label>Affiliation *</label>
               <input
                 type="text"
@@ -262,19 +312,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
                 onChange={handleChange}
                 required
               />
-            </div>
-
-            <div className={styles.field}>
-              <label>Status</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-              >
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-              </select>
             </div>
 
             <div className={styles.fieldFull}>
@@ -320,7 +357,6 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
               />
             </div>
 
-
             <div className={styles.field}>
               <label>Arrival Date *</label>
               <input
@@ -364,7 +400,16 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
             </button>
           </div>
         </form>
+        <Modal
+          isOpen={modal.isOpen}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          onConfirm={modal.onConfirm}
+          onCancel={closeModal}
+        />
       </div>
+
     </div>,
     document.body
   );

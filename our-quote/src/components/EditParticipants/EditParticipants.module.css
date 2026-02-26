@@ -96,6 +96,8 @@
   border: 1px solid var(--secondary-color);
   padding: 24px;
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 
@@ -196,7 +198,7 @@
   gap: 12px;
   background: var(--accent-color);
   border-radius: 8px;
-  margin: 12px 0;
+  margin: 14px 0;
 }
 
 .dateInfo {
@@ -216,7 +218,7 @@
 }
 
 .metadata {
-  margin-top: 12px;
+  margin-top: 24px;
   padding-top: 12px;
   border-top: 1px solid var(--secondary-color);
 }
@@ -229,8 +231,8 @@
 .cardActions {
   display: flex;
   gap: 8px;
-  margin-top: 20px;
-  padding-top: 16px;
+  margin-top: 24px;
+  padding-top: 24px;
   border-top: 1px solid var(--secondary-color);
 }
 
@@ -289,4 +291,12 @@
   color: #999;
   padding: 40px;
   font-size: 18px;
+}
+.publishedInfo {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.cardFooter {
+  margin-top: auto;
 }

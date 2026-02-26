@@ -133,8 +133,7 @@ class ParticipantSubmission(models.Model):
     
     STATUS_CHOICES = [
         ('pending', 'Pending Review'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
+        ('approved', 'Published'),
     ]
     
     name = models.CharField(max_length=255)

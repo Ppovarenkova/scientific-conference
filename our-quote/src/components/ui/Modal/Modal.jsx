@@ -1,0 +1,39 @@
+import styles from './Modal.module.css';
+import { createPortal } from 'react-dom';
+
+export default function Modal({
+  isOpen,
+  title,
+  message,
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  onConfirm,
+  onCancel,
+  type = 'default', 
+}) {
+
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div className={styles.overlay}>
+      <div className={`${styles.modal} ${styles[type]}`}>
+        {title && <h3 className={styles.title}>{title}</h3>}
+        <p className={styles.message}>{message}</p>
+
+        <div className={styles.actions}>
+          {onCancel && (
+            <button onClick={onCancel} className={styles.cancelBtn}>
+              {cancelText}
+            </button>
+          )}
+          {onConfirm && (
+            <button onClick={onConfirm} className={styles.confirmBtn}>
+              {confirmText}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}

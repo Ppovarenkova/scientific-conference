@@ -6,6 +6,7 @@ import avatar from '../../assets/avatar.png';
 import Loader from '../ui/Loader/Loader';
 import { fetchWithAuth } from '../../utils/api';
 import EditSubmissionModal from '../EditSubmissionModal/EditSubmissionModal';
+import Modal from '../ui/Modal/Modal';
 
 export default function EditParticipants() {
   const [submissions, setSubmissions] = useState([]);
@@ -13,6 +14,26 @@ export default function EditParticipants() {
   const [loading, setLoading] = useState(true);
   const [editingSubmission, setEditingSubmission] = useState(null);
   const navigate = useNavigate();
+
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    type: 'default'
+  });
+
+  function openModal(config) {
+    setModal({
+      isOpen: true,
+      ...config
+    });
+  }
+
+  function closeModal() {
+    setModal(prev => ({ ...prev, isOpen: false }));
+  }
+
 
   useEffect(() => {
     fetchSubmissions();
@@ -22,19 +43,25 @@ export default function EditParticipants() {
     setLoading(true);
     const token = localStorage.getItem("access_token");
 
-    if (!token) {
-      alert("Session expired. Please login again.");
-      navigate("/");
+        if (!token) {
+      openModal({
+        title: "Session expired",
+        message: "Please login again.",
+        type: "danger",
+        onConfirm: () => {
+          closeModal();
+          navigate("/");
+        }
+      });
       return;
     }
-    
+
     try {
       const res = await fetchWithAuth(`http://localhost:8000/api/admin/submissions/?status=${filter}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
 
       if (res.status === 401) {
-        // Token expired or invalid
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         alert("Session expired. Please login again.");
@@ -44,7 +71,6 @@ export default function EditParticipants() {
 
       if (res.ok) {
         const data = await res.json();
-        console.log("Submissions data:", data);
         setSubmissions(data);
       }
     } catch (error) {
@@ -55,10 +81,10 @@ export default function EditParticipants() {
   }
 
   async function publishSubmission(id) {
-    if (!window.confirm('Publish this submission? This will create a Participant and Abstract entry.')) return;
+    
 
     const token = localStorage.getItem("access_token");
-    
+
     try {
       const res = await fetchWithAuth(`http://localhost:8000/api/admin/submissions/${id}/publish/`, {
         method: 'POST',
@@ -68,72 +94,149 @@ export default function EditParticipants() {
       if (res.status === 401) {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
-        alert("Session expired. Please login again.");
-        navigate("/");
+         if (res.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+
+        openModal({
+          title: "Session expired",
+          message: "Please login again.",
+          type: "danger",
+          onConfirm: () => {
+            closeModal();
+            navigate("/");
+          }
+        });
         return;
+      }
       }
 
       if (res.ok) {
-        alert(' Published successfully!');
+         openModal({
+          title: "Success",
+          message: "Published successfully!",
+          type: "success",
+          onConfirm: closeModal
+        });
         fetchSubmissions();
       } else {
         const error = await res.json();
-        alert(`Failed to publish: ${error.error || 'Unknown error'}`);
+        openModal({
+          title: "Error",
+          message: error.error || "Unknown error",
+          type: "danger",
+          onConfirm: closeModal
+        });
       }
     } catch (error) {
-      alert('Connection error');
+      openModal({
+        title: "Connection error",
+        message: "Server is unreachable.",
+        type: "danger",
+        onConfirm: closeModal
+      });
     }
+  }
+
+    function confirmPublish(id) {
+    openModal({
+      title: "Publish submission",
+      message:
+        "This will create a Participant and Abstract entry.",
+      type: "default",
+      onConfirm: async () => {
+        closeModal();
+        await publishSubmission(id);
+      }
+    });
   }
 
   async function deleteSubmission(id) {
-const submission = submissions.find(s => s.id === id);
-  const isApproved = submission?.status === 'approved';
-  
-  const confirmMessage = isApproved 
-    ? 'Delete this submission permanently?\n\nWARNING: This will also remove the published Participant and Abstract from the public site!'
-    : 'Delete this submission permanently? This cannot be undone.';
-  
-  if (!window.confirm(confirmMessage)) return;
+    const submission = submissions.find(s => s.id === id);
+    const isApproved = submission?.status === 'approved';
 
-  const token = localStorage.getItem("access_token");
-  
-  if (!token) {
-    alert("Session expired. Please login again.");
-    navigate("/");
-    return;
-  }
 
-  try {
-    const res = await fetch(`http://localhost:8000/api/admin/submissions/${id}/`, {
-      method: 'DELETE',
-      headers: { "Authorization": `Bearer ${token}` }
-    });
+    const token = localStorage.getItem("access_token");
 
-    if (res.status === 401) {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      alert("Session expired. Please login again.");
-      navigate("/");
+    if (!token) {
+      openModal({
+        title: "Session expired",
+        message: "Please login again.",
+        type: "danger",
+        onConfirm: () => {
+          closeModal();
+          navigate("/");
+        }
+      });
       return;
     }
 
-    if (res.ok || res.status === 204) {
-      if (isApproved) {
-        alert(' Deleted successfully\n\nThe Participant and Abstract have been removed from the public site.');
-      } else {
-        alert(' Deleted successfully');
+    try {
+      const res = await fetch(`http://localhost:8000/api/admin/submissions/${id}/`, {
+        method: 'DELETE',
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (res.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        openModal({
+          title: "Session expired",
+          message: "Please login again.",
+          type: "danger",
+          onConfirm: () => {
+            closeModal();
+            navigate("/");
+          }
+        });
+        return;
       }
-      fetchSubmissions();
-    } else {
-      const errorText = await res.text();
-      console.error("Delete error:", errorText);
-      alert(` Failed to delete (${res.status}): ${errorText}`);
+
+      if (res.ok || res.status === 204) {
+        if (isApproved) {
+          openModal({
+            title: "Success",
+            message: "Deleted successfully\n\nThe Participant and Abstract have been removed from the public site.",
+            onConfirm: closeModal
+          });
+        } else {
+          openModal({
+            title: "Success",
+            message: "Deleted successfully",
+            onConfirm: closeModal
+          });
+        }
+        fetchSubmissions();
+      } else {
+        const errorText = await res.text();
+        console.error("Delete error:", errorText);
+        openModal({
+          title: "Delete failed",
+          message: errorText,
+          onConfirm: closeModal
+        });
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      openModal({
+        title: "Connection error",
+        message: error.message,
+        onConfirm: closeModal
+      });
     }
-  } catch (error) {
-    console.error("Delete error:", error);
-    alert(`Connection error: ${error.message}`);
   }
 
+    function confirmDelete(id, isApproved) {
+    openModal({
+      title: "Delete submission",
+      message: isApproved
+        ? "WARNING: This will also remove the published Participant and Abstract from the public site!"
+        : "Delete this submission permanently? This cannot be undone.",
+      onConfirm: async () => {
+        closeModal();
+        await deleteSubmission(id, isApproved);
+      }
+    });
   }
 
   function formatDate(dateString) {
@@ -144,6 +247,12 @@ const submission = submissions.find(s => s.id === id);
     });
   }
 
+  function getStatusDisplay(status) {
+    if (status === 'approved') return 'published';
+    return status;
+  }
+
+
   function getPhotoUrl(photoPath) {
     if (!photoPath) return null;
     if (photoPath.startsWith('http')) return photoPath;
@@ -151,47 +260,43 @@ const submission = submissions.find(s => s.id === id);
   }
 
   function handleSaveSubmission(updatedSubmission) {
-    // Update in local state
-    setSubmissions(prev => 
+    setSubmissions(prev =>
       prev.map(sub => sub.id === updatedSubmission.id ? updatedSubmission : sub)
     );
   }
+
+
+
 
   if (loading) {
     return (
       <div className={styles.container}>
         <button onClick={() => navigate("/admin-panel")} className={styles.backBtn}>
-        ←  Back
-      </button>
-      
-      <Title text="Participant Submissions"></Title>
+          ← Back
+        </button>
 
-      <div className={styles.filterButtons}>
-        <button 
-          className={filter === 'pending' ? styles.active : ''}
-          onClick={() => setFilter('pending')}
-        >
-          Pending
-        </button>
-        <button 
-          className={filter === 'approved' ? styles.active : ''}
-          onClick={() => setFilter('approved')}
-        >
-          Approved
-        </button>
-        <button 
-          className={filter === 'rejected' ? styles.active : ''}
-          onClick={() => setFilter('rejected')}
-        >
-          Rejected
-        </button>
-        <button 
-          className={filter === '' ? styles.active : ''}
-          onClick={() => setFilter('')}
-        >
-          All
-        </button>
-      </div>
+        <Title text="Participant Submissions" />
+
+        <div className={styles.filterButtons}>
+          <button
+            className={filter === 'pending' ? styles.active : ''}
+            onClick={() => setFilter('pending')}
+          >
+            Pending
+          </button>
+          <button
+            className={filter === 'approved' ? styles.active : ''}
+            onClick={() => setFilter('approved')}
+          >
+            Published
+          </button>
+          <button
+            className={filter === '' ? styles.active : ''}
+            onClick={() => setFilter('')}
+          >
+            All
+          </button>
+        </div>
         <Loader />
       </div>
     );
@@ -200,31 +305,25 @@ const submission = submissions.find(s => s.id === id);
   return (
     <div className={styles.container}>
       <button onClick={() => navigate("/admin-panel")} className={styles.backBtn}>
-        ←  Back
+        ← Back
       </button>
-      
-      <Title text="Participant Submissions"></Title>
+
+      <Title text="Participant Submissions" />
 
       <div className={styles.filterButtons}>
-        <button 
+        <button
           className={filter === 'pending' ? styles.active : ''}
           onClick={() => setFilter('pending')}
         >
           Pending
         </button>
-        <button 
+        <button
           className={filter === 'approved' ? styles.active : ''}
           onClick={() => setFilter('approved')}
         >
-          Approved
+          Published
         </button>
-        <button 
-          className={filter === 'rejected' ? styles.active : ''}
-          onClick={() => setFilter('rejected')}
-        >
-          Rejected
-        </button>
-        <button 
+        <button
           className={filter === '' ? styles.active : ''}
           onClick={() => setFilter('')}
         >
@@ -234,7 +333,7 @@ const submission = submissions.find(s => s.id === id);
 
       {submissions.length === 0 ? (
         <div className={styles.noDataContainer}>
-            <p className={styles.noData}>No submissions found</p>
+          <p className={styles.noData}>No submissions found</p>
         </div>
       ) : (
         <div className={styles.submissionsGrid}>
@@ -243,12 +342,11 @@ const submission = submissions.find(s => s.id === id);
               <div className={styles.cardHeader}>
                 <div className={styles.headerLeft}>
                   {sub.photo ? (
-                    <img 
-                      src={getPhotoUrl(sub.photo)} 
+                    <img
+                      src={getPhotoUrl(sub.photo)}
                       alt={sub.name}
                       className={styles.participantPhoto}
                       onError={(e) => {
-                        console.error("Failed to load image:", sub.photo);
                         e.target.src = avatar;
                       }}
                     />
@@ -263,7 +361,7 @@ const submission = submissions.find(s => s.id === id);
                   </div>
                 </div>
                 <span className={`${styles.badge} ${styles[sub.status]}`}>
-                  {sub.status}
+                  {getStatusDisplay(sub.status)}
                 </span>
               </div>
 
@@ -284,8 +382,8 @@ const submission = submissions.find(s => s.id === id);
                   <strong>Abstract:</strong>
                   {sub.abstract_text ? (
                     <p className={styles.abstractText}>
-                      {sub.abstract_text.length > 200 
-                        ? sub.abstract_text.substring(0, 200) + '...' 
+                      {sub.abstract_text.length > 200
+                        ? sub.abstract_text.substring(0, 200) + '...'
                         : sub.abstract_text}
                     </p>
                   ) : (
@@ -302,6 +400,8 @@ const submission = submissions.find(s => s.id === id);
                   </div>
                 )}
 
+              </div>
+              <div className={styles.cardFooter}>
                 <div className={styles.datesSection}>
                   <div className={styles.dateInfo}>
                     <strong>Arrival:</strong>
@@ -316,33 +416,34 @@ const submission = submissions.find(s => s.id === id);
                     <span>{sub.stay_duration} days</span>
                   </div>
                 </div>
-
                 <div className={styles.metadata}>
                   <small>Submitted: {formatDate(sub.submitted_at)}</small>
                 </div>
-              </div>
 
-              <div className={styles.cardActions}>
-                {sub.status === 'pending' && (
-                  <button 
-                    className={styles.publishBtn}
-                    onClick={() => publishSubmission(sub.id)}
+
+                <div className={styles.cardActions}>
+                  {sub.status === 'pending' && (
+                    <button
+                      className={styles.publishBtn}
+                      
+                      onClick={() => confirmPublish(sub.id)}
+                    >
+                      Publish
+                    </button>
+                  )}
+                  <button
+                    className={styles.editBtn}
+                    onClick={() => setEditingSubmission(sub)}
                   >
-                     Publish
+                    Edit
                   </button>
-                )}
-                <button 
-                  className={styles.editBtn}
-                  onClick={() => setEditingSubmission(sub)}
-                >
-                  Edit
-                </button>
-                <button 
-                  className={styles.deleteBtn}
-                  onClick={() => deleteSubmission(sub.id)}
-                >
-                  Delete
-                </button>
+                  <button
+                    className={styles.deleteBtn}
+                    onClick={() => confirmDelete(sub.id, sub.status === 'approved')}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -355,6 +456,13 @@ const submission = submissions.find(s => s.id === id);
           onSave={handleSaveSubmission}
         />
       )}
+      <Modal
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        onConfirm={modal.onConfirm}
+        onCancel={closeModal}
+      />
     </div>
   );
 }
