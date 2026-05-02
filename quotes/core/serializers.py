@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     React, ConferenceDay, Session,
-    Talk, Participant, Abstract, Organizer, OrganizingCommittee, ParticipantSubmission
+    Talk, Participant, Abstract, Organizer, OrganizingCommittee, ParticipantSubmission, AccommodationInfo, AccommodationOption, HikingStop, HikingRoute, ConferenceInfo
 )
 
 
@@ -127,7 +127,22 @@ class OrganizingCommitteeSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "department", "email", "photo"]
 
 
+class AccommodationOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AccommodationOption
+        fields = ['id', 'name', 'description', 'url', 'photo', 'order']
 
+class AccommodationInfoSerializer(serializers.ModelSerializer):
+    options = AccommodationOptionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = AccommodationInfo
+        fields = ['id', 'description', 'options']
+
+class AccommodationOptionWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AccommodationOption
+        fields = ['id', 'name', 'description', 'url', 'photo', 'order']
 
 class ParticipantSubmissionSerializer(serializers.ModelSerializer):
     stay_duration = serializers.ReadOnlyField()
@@ -140,7 +155,7 @@ class ParticipantSubmissionSerializer(serializers.ModelSerializer):
             'additional_authors', 'additional_affiliations',
             'arrival_date', 'departure_date', 'stay_duration',
             'status', 'submitted_at', 'reviewed_at', 'admin_notes',
-            'published_participant', 'published_abstract'
+            'published_participant', 'published_abstract', 'info', 'is_student',
         ]
         read_only_fields = ['submitted_at', 'reviewed_at', 'published_participant', 'published_abstract', 'stay_duration']
     
@@ -237,3 +252,20 @@ class ParticipantSubmissionSerializer(serializers.ModelSerializer):
                     talk_type='talk',
                     is_scheduled=False,
                 )
+
+class HikingStopSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HikingStop
+        fields = '__all__'
+
+class HikingRouteSerializer(serializers.ModelSerializer):
+    stops = HikingStopSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = HikingRoute
+        fields = '__all__'
+
+class ConferenceInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConferenceInfo
+        fields = '__all__'

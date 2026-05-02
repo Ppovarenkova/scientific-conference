@@ -19,9 +19,18 @@ import ProgramPage from './pages/ProgramPage';
 import AdminPanel from './components/AdminPanel/AdminPanel';
 import ParticipantsInfo from './components/ParticipantsInfo/ParticipantsInfo';
 import EditParticipants from './components/EditParticipants/EditParticipants';
-import EditAbstracts from './components/EditAbstracts/EditAbstracts';
 import EditProgram from './components/EditProgram/EditProgram';
 import EditWebInfo from './components/EditWebInfo/EditWebInfo';
+import Venue from './components/Venue/Venue';
+import Accommodation from './components/Accommodation/Accommodation';
+import Hiking from './components/Hiking/Hiking';
+import EditWebInfoHome from './components/EditWebInfoHome/EditWebInfoHome';
+import EditWebInfoRegistration from './components/EditWebInfoRegistration/EditWebInfoRegistration';
+import EditWebInfoProgram from './components/EditWebInfoProgram/EditWebInfoProgram';
+import EditWebInfoVenue from './components/EditWebInfoVenue/EditWebInfoVenue';
+import EditWebInfoAccommodation from './components/EditWebInfoAccommodation/EditWebInfoAccommodation';
+import EditWebInfoHiking from './components/EditWebInfoHiking/EditWebInfoHiking';
+import EditWebInfoFooter from './components/EditWebInfoFooter/EditWebInfoFooter';
 
 
 function App() {
@@ -36,7 +45,9 @@ function App() {
           <Route path="/abstracts" element={<AbstractsPage />} />
           <Route path="/registration" element={<RegistrationPage />} />
           <Route path="/program" element={<ProgramPage />} />
-
+          <Route path="/venue" element={<Venue />} />
+          <Route path="/accommodation" element={<Accommodation />} />
+          <Route path="/hiking" element={<Hiking />} />
           {/* Protected Admin Routes */}
           <Route path="/admin-panel" element={
             <ProtectedRoute>
@@ -53,11 +64,6 @@ function App() {
               <EditParticipants />
             </ProtectedRoute>
           } />
-          <Route path="/admin-panel/edit-abstracts" element={
-            <ProtectedRoute>
-              <EditAbstracts />
-            </ProtectedRoute>
-          } />
           <Route path="/admin-panel/edit-program" element={
             <ProtectedRoute>
               <EditProgram />
@@ -66,6 +72,41 @@ function App() {
           <Route path="/admin-panel/edit-web-info" element={
             <ProtectedRoute>
               <EditWebInfo />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin-panel/edit-web-info/home" element={
+            <ProtectedRoute>
+              <EditWebInfoHome />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin-panel/edit-web-info/registration" element={
+            <ProtectedRoute>
+              <EditWebInfoRegistration />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin-panel/edit-web-info/program" element={
+            <ProtectedRoute>
+              <EditWebInfoProgram />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin-panel/edit-web-info/venue" element={
+            <ProtectedRoute>
+              <EditWebInfoVenue />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin-panel/edit-web-info/accommodation" element={
+            <ProtectedRoute>
+              <EditWebInfoAccommodation />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin-panel/edit-web-info/hiking" element={
+            <ProtectedRoute>
+              <EditWebInfoHiking />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin-panel/edit-web-info/footer" element={
+            <ProtectedRoute>
+              <EditWebInfoFooter />
             </ProtectedRoute>
           } />
         </Routes>

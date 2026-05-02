@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ConferenceDay, Session, Talk, Participant, Abstract, Organizer, OrganizingCommittee, ParticipantSubmission
+from .models import ConferenceDay, Session, Talk, Participant, Abstract, Organizer, OrganizingCommittee, ParticipantSubmission, AccommodationInfo, AccommodationOption, HikingRoute, ConferenceInfo
 
 
 class TalkInline(admin.TabularInline):
@@ -82,3 +82,26 @@ class ParticipantSubmissionAdmin(admin.ModelAdmin):
                 submission.publish()
         self.message_user(request, f"{queryset.count()} submissions published")
     publish_selected.short_description = "Publish selected submissions"
+
+@admin.register(AccommodationInfo)
+class AccommodationInfoAdmin(admin.ModelAdmin):
+    list_display = ("id",)
+
+@admin.register(AccommodationOption)
+class AccommodationOptionAdmin(admin.ModelAdmin):
+    list_display = ("name", "info", "order")
+
+from .models import HikingRoute, HikingStop
+
+class HikingStopInline(admin.TabularInline):
+    model = HikingStop
+    extra = 1
+
+@admin.register(HikingRoute)
+class HikingRouteAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    inlines = [HikingStopInline]
+
+@admin.register(ConferenceInfo)
+class ConferenceInfoAdmin(admin.ModelAdmin):
+    list_display = ("title", "year", "date_start", "date_end")

@@ -1,0 +1,282 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import styles from './EditWebInfoHome.module.css';
+import Title from '../ui/Title/Title';
+import Loader from '../ui/Loader/Loader';
+import { fetchWithAuth } from '../../utils/api';
+
+const API = 'http://localhost:8000/api';
+
+export default function EditWebInfoHome() {
+  const [form, setForm] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
+  const [organizers, setOrganizers] = useState([]);
+  const [committee, setCommittee] = useState([]);
+  const [personSaved, setPersonSaved] = useState('');
+  const [personError, setPersonError] = useState('');
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`${API}/conference-info/`).then(r => r.json()),
+      fetch(`${API}/organizers/`).then(r => r.json()),
+      fetch(`${API}/committees/`).then(r => r.json()),
+    ]).then(([info, orgs, comm]) => {
+      setForm(info);
+      setOrganizers(orgs);
+      setCommittee(comm);
+      setLoading(false);
+    });
+  }, []);
+
+  function handleChange(e) {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setSaved(false);
+  }
+
+  async function handleSave(e) {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    try {
+      const res = await fetchWithAuth(`${API}/conference-info/edit/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error();
+      setSaved(true);
+    } catch {
+      setError('Failed to save. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function handlePersonChange(list, setList, index, field, value) {
+    const updated = [...list];
+    updated[index] = { ...updated[index], [field]: value };
+    setList(updated);
+  }
+
+  function handlePersonPhoto(list, setList, index, file) {
+    const updated = [...list];
+    updated[index] = { ...updated[index], _photoFile: file };
+    setList(updated);
+  }
+
+  async function savePerson(endpoint, person) {
+    const fd = new FormData();
+    fd.append('name', person.name || '');
+    fd.append('department', person.department || '');
+    fd.append('email', person.email || '');
+    if (person._photoFile) fd.append('photo', person._photoFile);
+    if (person.id) {
+      return fetchWithAuth(`${API}/${endpoint}/${person.id}/`, { method: 'PATCH', body: fd });
+    } else {
+      return fetchWithAuth(`${API}/${endpoint}/`, { method: 'POST', body: fd });
+    }
+  }
+
+  async function deletePerson(endpoint, id, list, setList) {
+    if (!window.confirm('Delete this person?')) return;
+    if (id) {
+      await fetchWithAuth(`${API}/${endpoint}/${id}/`, { method: 'DELETE' });
+    }
+    setList(list.filter(p => p.id !== id));
+  }
+
+  function addPerson(list, setList) {
+    setList([...list, { name: '', department: '', email: '', photo: null }]);
+  }
+
+  async function saveAllPersons(endpoint, list, setList) {
+    setSaving(true);
+    setPersonError('');
+    setPersonSaved('');
+    try {
+      const results = await Promise.all(list.map(p => savePerson(endpoint, p)));
+      const updated = await Promise.all(results.map(r => r.json()));
+      setList(updated);
+      setPersonSaved(endpoint);
+    } catch {
+      setPersonError('Failed to save. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className={styles.container}>
+      <Link to="/admin-panel/edit-web-info" className={styles.backButton}>← BACK</Link>
+      <Title text="Edit Home" />
+
+      {loading ? (
+        <Loader />
+      ) : (
+        <div className={styles.fadeIn}>
+
+          {/* ── Conference Info Form ── */}
+          <form onSubmit={handleSave} className={styles.form}>
+
+            <section className={styles.section}>
+              <h2 className={styles.sectionTitle}>Hero</h2>
+
+              <div className={styles.field}>
+                <label>Conference Title</label>
+                <input name="title" value={form.title || ''} onChange={handleChange} />
+              </div>
+
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label>Year</label>
+                  <input name="year" type="number" value={form.year || ''} onChange={handleChange} />
+                </div>
+                <div className={styles.field}>
+                  <label>Location</label>
+                  <input name="location" value={form.location || ''} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label>Date Start</label>
+                  <input name="date_start" type="date" value={form.date_start || ''} onChange={handleChange} />
+                </div>
+                <div className={styles.field}>
+                  <label>Date End</label>
+                  <input name="date_end" type="date" value={form.date_end || ''} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div className={styles.field}>
+                <label>Description</label>
+                <textarea name="description" rows={5} value={form.description || ''} onChange={handleChange} />
+              </div>
+            </section>
+
+            <section className={styles.section}>
+              <h2 className={styles.sectionTitle}>Registration</h2>
+
+              <div className={styles.field}>
+                <label>Fee Note</label>
+                <input name="registration_fee_note" value={form.registration_fee_note || ''} onChange={handleChange} />
+              </div>
+
+              <div className={styles.field}>
+                <label>Registration Instructions <span className={styles.hint}>(one item per line)</span></label>
+                <textarea name="registration_instructions" rows={6} value={form.registration_instructions || ''} onChange={handleChange} />
+              </div>
+
+              <div className={styles.field}>
+                <label>Registration Deadline</label>
+                <input name="registration_deadline" type="date" value={form.registration_deadline || ''} onChange={handleChange} />
+              </div>
+            </section>
+
+            {error && <p className={styles.error}>{error}</p>}
+
+            <div className={styles.actions}>
+              {saved && <span className={styles.savedMsg}>✓ Saved successfully</span>}
+              <button type="submit" className={styles.saveButton} disabled={saving}>
+                {saving ? 'Saving...' : 'SAVE CHANGES'}
+              </button>
+            </div>
+          </form>
+
+          {/* ── Organising Committee ── */}
+          <PersonSection
+            title="Organising Committee"
+            list={committee}
+            saving={saving}
+            savedMsg={personSaved === 'committees' ? '✓ Saved successfully' : ''}
+            errorMsg={personError}
+            onSaveAll={() => saveAllPersons('committees', committee, setCommittee)}
+            onDelete={(id) => deletePerson('committees', id, committee, setCommittee)}
+            onChange={(i, field, val) => handlePersonChange(committee, setCommittee, i, field, val)}
+            onPhoto={(i, file) => handlePersonPhoto(committee, setCommittee, i, file)}
+            onAdd={() => addPerson(committee, setCommittee)}
+          />
+
+          {/* ── Organisers ── */}
+          <PersonSection
+            title="Organisers"
+            list={organizers}
+            saving={saving}
+            savedMsg={personSaved === 'organizers' ? '✓ Saved successfully' : ''}
+            errorMsg={personError}
+            onSaveAll={() => saveAllPersons('organizers', organizers, setOrganizers)}
+            onDelete={(id) => deletePerson('organizers', id, organizers, setOrganizers)}
+            onChange={(i, field, val) => handlePersonChange(organizers, setOrganizers, i, field, val)}
+            onPhoto={(i, file) => handlePersonPhoto(organizers, setOrganizers, i, file)}
+            onAdd={() => addPerson(organizers, setOrganizers)}
+          />
+
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PersonSection({ title, list, onSaveAll, onDelete, onChange, onPhoto, onAdd, saving, savedMsg, errorMsg }) {
+  return (
+    <section className={styles.section} style={{ marginTop: 40 }}>
+      <h2 className={styles.sectionTitle}>{title}</h2>
+
+      {list.length === 0 && <p className={styles.emptyMsg}>No people added yet.</p>}
+
+      {list.map((person, i) => (
+        <div key={person.id ?? `new-${i}`} className={styles.personRow}>
+          <div className={styles.photoCol}>
+            {person._photoFile
+              ? <img src={URL.createObjectURL(person._photoFile)} alt="preview" className={styles.personPhoto} />
+              : person.photo
+                ? <img src={person.photo} alt={person.name} className={styles.personPhoto} />
+                : <div className={styles.photoPlaceholder} />
+            }
+            <label className={styles.photoLabel}>
+              Change photo
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => onPhoto(i, e.target.files[0])}
+                className={styles.fileInputHidden}
+              />
+            </label>
+          </div>
+
+          <div className={styles.personFields}>
+            <div className={styles.field}>
+              <label>Name</label>
+              <input value={person.name || ''} onChange={e => onChange(i, 'name', e.target.value)} />
+            </div>
+            <div className={styles.field}>
+              <label>Department / Affiliation</label>
+              <input value={person.department || ''} onChange={e => onChange(i, 'department', e.target.value)} />
+            </div>
+            <div className={styles.field}>
+              <label>Email</label>
+              <input type="email" value={person.email || ''} onChange={e => onChange(i, 'email', e.target.value)} />
+            </div>
+          </div>
+
+          <button type="button" className={styles.deleteButton} onClick={() => onDelete(person.id)}>✕</button>
+        </div>
+      ))}
+
+      {errorMsg && <p className={styles.error}>{errorMsg}</p>}
+
+      <div className={styles.personActions}>
+        <button type="button" className={styles.addButton} onClick={onAdd}>+ ADD PERSON</button>
+        <div className={styles.saveRow}>
+          {savedMsg && <span className={styles.savedMsg}>{savedMsg}</span>}
+          <button type="button" className={styles.saveButton} onClick={onSaveAll} disabled={saving}>
+            {saving ? 'Saving...' : `SAVE ${title.toUpperCase()}`}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}

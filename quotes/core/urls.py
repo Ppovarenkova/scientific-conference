@@ -2,6 +2,8 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import (
+    AccommodationInfoEditView,
+    AccommodationOptionEditView,
     ProgramView,
     ParticipantListView,
     ParticipantDetailView,
@@ -11,7 +13,8 @@ from .views import (
     TalkDetailView,
     OrganizerListAPIView,
     OrganizingCommitteeListAPIView,
-    AdminPanelView, SubmissionCreateView, SubmissionListView, SubmissionDetailView, publish_submission, UnscheduledTalksView, TalkScheduleUpdateView, UnscheduledTalkDeleteView, ScheduleBreakCreateView, SessionCreateView, SessionListView, ConferenceDayCreateView, SessionUpdateTimeView
+    AdminPanelView, SubmissionCreateView, SubmissionListView, SubmissionDetailView,
+    generate_program_pdf, publish_submission, UnscheduledTalksView, TalkScheduleUpdateView, UnscheduledTalkDeleteView, ScheduleBreakCreateView, SessionCreateView, SessionListView, ConferenceDayCreateView, SessionUpdateTimeView, generate_badges_pdf, AccommodationInfoView, HikingRouteListView, HikingRouteEditView, HikingStopEditView, ConferenceInfoView, ConferenceInfoEditView, OrganizerDetailView, OrganizingCommitteeDetailView
 )
 
 urlpatterns = [
@@ -25,7 +28,15 @@ urlpatterns = [
     path("talks/<int:pk>/", TalkDetailView.as_view(), name="talk-detail"),
     path("organizers/", OrganizerListAPIView.as_view(), name="organizer-list"),
     path("committees/", OrganizingCommitteeListAPIView.as_view(), name="committee-list"),
-    
+    path("accommodation/", AccommodationInfoView.as_view()),
+    path("admin/accommodation/", AccommodationInfoEditView.as_view()),
+    path("admin/accommodation/options/", AccommodationOptionEditView.as_view()),
+    path("admin/accommodation/options/<int:pk>/", AccommodationOptionEditView.as_view()),
+    path('conference-info/', ConferenceInfoView.as_view()),
+    path('conference-info/edit/', ConferenceInfoEditView.as_view()),
+    path("organizers/<int:pk>/", OrganizerDetailView.as_view()),
+    path("organizers/create/", OrganizerDetailView.as_view()),  # POST через ListCreateAPIView
+    path("committees/<int:pk>/", OrganizingCommitteeDetailView.as_view()),
     # Public submission form
     path("submit/", SubmissionCreateView.as_view(), name="submission-create"),
     
@@ -34,6 +45,10 @@ urlpatterns = [
     path("admin/submissions/", SubmissionListView.as_view(), name="submissions-list"),
     path("admin/submissions/<int:pk>/", SubmissionDetailView.as_view(), name="submission-detail"),
     path("admin/submissions/<int:pk>/publish/", publish_submission, name="submission-publish"),
+    path('hiking/', HikingRouteListView.as_view()),
+    path('hiking/admin/', HikingRouteEditView.as_view()),
+    path('hiking/stops/', HikingStopEditView.as_view()),
+    path('hiking/stops/<int:pk>/', HikingStopEditView.as_view()),
     # Admin: unscheduled talks
     path("admin/talks/unscheduled/", UnscheduledTalksView.as_view(), name="unscheduled-talks"),
     path("admin/talks/<int:pk>/schedule/", TalkScheduleUpdateView.as_view(), name="talk-schedule"),
@@ -43,4 +58,6 @@ urlpatterns = [
     path("admin/sessions/", SessionListView.as_view(), name="sessions-list"),
     path("admin/sessions/<int:pk>/update-time/", SessionUpdateTimeView.as_view()),
     path("admin/days/create/", ConferenceDayCreateView.as_view(), name="day-create"),
+    path("admin/badges/download/", generate_badges_pdf, name="download-badges"),
+    path("admin/program/download/", generate_program_pdf, name="download-program"),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

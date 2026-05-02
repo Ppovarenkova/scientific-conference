@@ -14,14 +14,16 @@
 }
 .instructions {
     font-family: var(--font--main);
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 400;
     margin-bottom: 15px;
+    letter-spacing: 0.5px;
 }
 .deadline {
     font-family: var(--font--main);
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
+    letter-spacing: 0.5px;
     margin-bottom: 50px;
 }
 .field {

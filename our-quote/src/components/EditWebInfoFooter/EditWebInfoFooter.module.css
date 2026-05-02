@@ -1,0 +1,169 @@
+.container {
+  padding: 35px 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: var(--accent-color);
+}
+
+.backButton {
+  display: inline-block;
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 10px 24px;
+  text-decoration: none;
+  font-family: var(--font-main);
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  transition: background-color 0.3s ease;
+}
+
+.backButton:hover { background-color: #004494; }
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid #1e73be;
+  padding: 28px;
+}
+.fadeIn {
+    opacity: 0;
+    animation: fadeInAnim 0.4s ease forwards;
+}
+
+@keyframes fadeInAnim {
+    to {
+        opacity: 1;
+    }
+}
+.sectionTitle {
+  font-family: var(--font-title);
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--primary-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field label {
+  font-family: var(--font-main);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.field input,
+.field textarea {
+  font-family: var(--font-main);
+  font-size: 15px;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  background: white;
+  color: var(--text-color);
+  outline: none;
+  transition: border-color 0.2s;
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus { border-color: var(--secondary-color); }
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 10px;
+}
+
+.saveButton {
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  padding: 12px 50px;
+  font-size: 16px;
+  font-weight: 300;
+  font-family: var(--font-main);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.saveButton:hover { background-color: #004494; }
+.saveButton:disabled { background-color: #aaa; cursor: not-allowed; }
+
+.savedMsg {
+  font-family: var(--font-main);
+  font-size: 15px;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.error {
+  color: red;
+  font-family: var(--font-main);
+  font-size: 15px;
+}
+
+/* Preview */
+.previewFooter {
+  background-color: #0d2a4a;
+  padding: 28px;
+  border-radius: 2px;
+}
+
+.previewColumns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.previewCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.previewLabel {
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.previewText {
+  font-family: var(--font-main);
+  font-size: 13px;
+  color: #c0cfe0;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.previewHr {
+  border: none;
+  border-top: 1px solid #2a4a6a;
+  margin: 20px 0 12px;
+}
+
+.previewCopyright {
+  font-family: var(--font-main);
+  font-size: 13px;
+  color: #7a9ab8;
+}

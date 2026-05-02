@@ -6,6 +6,17 @@
   background-color: var(--accent-color);
 
 }
+
+.fadeIn {
+    opacity: 0;
+    animation: fadeInAnim 0.4s ease forwards;
+}
+
+@keyframes fadeInAnim {
+    to {
+        opacity: 1;
+    }
+}
 .noDataContainer {
     padding: 50px 80px;
   max-width: 1400px;

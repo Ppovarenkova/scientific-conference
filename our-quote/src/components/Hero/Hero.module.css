@@ -17,6 +17,7 @@
     font-family: var(--font-title);
     font-size: 46px;
     font-weight: 200;
+    width: 60%;
     text-transform: uppercase;
     color: var(--accent-color);
 }
@@ -32,4 +33,5 @@
     color: var(--accent-color);
     font-weight: 300;
     text-align: right;
+    width: 50%;
 }

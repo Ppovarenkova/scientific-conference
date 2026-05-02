@@ -134,6 +134,22 @@ class OrganizingCommittee(models.Model):
     def __str__(self):
         return self.name
     
+class AccommodationInfo(models.Model):
+    description = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Accommodation Info"
+
+class AccommodationOption(models.Model):
+    info = models.ForeignKey(AccommodationInfo, on_delete=models.CASCADE, related_name='options')
+    name = models.CharField(max_length=200)
+    description = models.CharField(max_length=500, blank=True)
+    url = models.URLField(blank=True)
+    photo = models.ImageField(upload_to='accommodation/', blank=True, null=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
 
 class ParticipantSubmission(models.Model):
     
@@ -160,6 +176,8 @@ class ParticipantSubmission(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(blank=True, null=True)
     admin_notes = models.TextField(blank=True, help_text="Internal notes for admins")
+    info = models.TextField(blank=True, help_text="Additional info from participant")
+    is_student = models.BooleanField(default=False)  # ← для галочки Student
     
 
     published_participant = models.ForeignKey(
@@ -290,3 +308,58 @@ class ParticipantSubmission(models.Model):
             self.photo.delete(save=False)
         
         super().delete(*args, **kwargs)
+
+class HikingRoute(models.Model):
+    name = models.CharField(max_length=200)
+    way_description = models.TextField(blank=True)
+    map_url = models.URLField(blank=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Hiking Route"
+
+class HikingStop(models.Model):
+    route = models.ForeignKey(HikingRoute, on_delete=models.CASCADE, related_name='stops')
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    photo = models.ImageField(upload_to='hiking/', blank=True, null=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = "Hiking Stop"
+
+class ConferenceInfo(models.Model):
+    title = models.CharField(max_length=200, default="Workshop on Scientific Computing")
+    year = models.PositiveIntegerField(default=2026)
+    date_start = models.DateField(null=True, blank=True)
+    date_end = models.DateField(null=True, blank=True)
+    location = models.CharField(max_length=200, default="Děčín")
+    description = models.TextField(blank=True)
+    registration_instructions = models.TextField(blank=True)
+    registration_deadline = models.DateField(null=True, blank=True)
+    registration_fee_note = models.CharField(max_length=300, blank=True, default="Conference fee is free of charge")
+    grant_text = models.TextField(blank=True, default="This workshop was supported by the Grant Agency of the Czech Technical University in Prague, grant No. SVK 44/25/F4.")
+    venue_text = models.TextField(blank=True, default="Faculty of Nuclear Sciences and Physical Engineering, Pohraniční 1288/1, 405 02 Děčín and MS Teams online")
+    conference_office_text = models.TextField(blank=True, default="D. Landovská, Department of Software Engineering, Faculty of Nuclear Sciences and Physical Engineering, Czech Technical University in Prague")
+    website_url = models.URLField(blank=True)
+    poster_url = models.URLField(blank=True)
+    info_desk_email = models.EmailField(blank=True, default="pauspetr@cvut.cz")
+    venue_map_embed_url = models.TextField(blank=True, default="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2522.8151323874063!2d14.21346707611837!3d50.77900046365381!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47099fd1ace90813%3A0x7d351b85e2789db!2sCTU%20Decin!5e0!3m2!1sru!2scz!4v1777641891915!5m2!1sru!2scz")
+    copyright_text = models.CharField(max_length=200, blank=True, default="©2025 MMG, FNSPE CTU in Prague")
+    # Program page
+    program_local_registration_text = models.TextField(
+        blank=True,
+        default="Registration for local participants takes place at the conference venue: Thursday: from 13:00 to 14:00 + during coffee breaks between the sessions"
+    )
+    program_regular_talks_text = models.TextField(
+        blank=True,
+        default="Oral presentation duration is 20 min = 15 min talk + 5 min for discussion."
+    )
+    program_poster_talks_text = models.TextField(
+        blank=True,
+        default="Each poster will be briefly introduced in a short 1–3 min presentation."
+    )
+
+    class Meta:
+        verbose_name = "Conference Info"

@@ -1,6 +1,6 @@
 # Create your views here.
 
-from urllib import request
+from urllib import request, response
 
 from rest_framework.views import APIView
 from rest_framework import generics
@@ -11,10 +11,359 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.units import mm
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 from .models import *
 from .serializers import *
 
+def generate_program_pdf(request):
+    from rest_framework_simplejwt.authentication import JWTAuthentication
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import mm
+    from reportlab.pdfgen import canvas
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    import os, datetime
+
+    try:
+        auth = JWTAuthentication()
+        result = auth.authenticate(request)
+        if result is None or not result[0].is_staff:
+            return HttpResponse(status=403)
+    except Exception:
+        return HttpResponse(status=403)
+
+    font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'DejaVuSans.ttf')
+    font_bold_path = os.path.join(os.path.dirname(__file__), 'fonts', 'DejaVuSans-Bold.ttf')
+    pdfmetrics.registerFont(TTFont('DejaVu', font_path))
+    pdfmetrics.registerFont(TTFont('DejaVu-Bold', font_bold_path))
+
+    days = ConferenceDay.objects.prefetch_related(
+        'sessions__talks__participant',
+        'items__participant'
+    ).order_by('date')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="program.pdf"'
+
+    page_width, page_height = A4
+    c = canvas.Canvas(response, pagesize=A4)
+
+    # ── Колонки ──────────────────────────────────
+    margin_left  = 20 * mm
+    margin_right = 20 * mm
+    content_width = page_width - margin_left - margin_right
+
+    col_time  = 30 * mm   # ширина колонки времени
+    col_name  = 38 * mm   # ширина колонки имени
+    col_title_x = margin_left + col_time + col_name
+    col_title_w = content_width - col_time - col_name
+
+    ROW_HEIGHT   = 7 * mm   # расстояние между строками talks
+    CHAIR_BEFORE = 6 * mm   # отступ перед Chair
+    CHAIR_AFTER  = 2 * mm   # отступ после Chair
+    DAY_AFTER    = 10 * mm  # отступ после блока дня
+
+    y = page_height - 20 * mm
+
+    BLUE = colors.Color(0/255, 101/255, 189/255)
+    DARK = colors.Color(30/255, 30/255, 30/255)
+    GRAY = colors.Color(80/255, 80/255, 80/255)
+
+    DAYS_EN   = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June',
+                 'July', 'August', 'September', 'October', 'November', 'December']
+
+    def check_space(needed):
+        nonlocal y
+        if y < needed:
+            c.showPage()
+            y = page_height - 20 * mm
+
+    def fmt_time(t):
+        return f"{t.hour:02d}:{t.minute:02d}" if t else ''
+
+    def draw_wrapped(text, x, start_y, max_width, font, size, line_h):
+        """Рисует текст с переносом, возвращает y после последней строки."""
+        c.setFont(font, size)
+        words = text.split()
+        line = ''
+        cur_y = start_y
+        for word in words:
+            test = (line + ' ' + word).strip()
+            if c.stringWidth(test, font, size) <= max_width:
+                line = test
+            else:
+                if line:
+                    c.drawString(x, cur_y, line)
+                    cur_y -= line_h
+                line = word
+        if line:
+            c.drawString(x, cur_y, line)
+            cur_y -= line_h
+        return cur_y
+
+    for day in days:
+        check_space(35 * mm)
+
+        # ── Заголовок дня ──
+        day_label = (
+            f"{DAYS_EN[day.date.weekday()].upper()}, "
+            f"{day.date.day} {MONTHS_EN[day.date.month - 1].upper()} {day.date.year}"
+        )
+        c.setFillColor(BLUE)
+        c.setFont("DejaVu-Bold", 13)
+        c.drawString(margin_left, y, day_label)
+        y -= 2.5 * mm
+        c.setStrokeColor(BLUE)
+        c.setLineWidth(1.5)
+        c.line(margin_left, y, margin_left + content_width, y)
+        y -= 4 * mm
+
+        # ── Строим timeline ──
+        timeline = []
+        for session in day.sessions.all().order_by('start_time'):
+            timeline.append(('session', session))
+            for talk in session.talks.all().order_by('start_time'):
+                timeline.append(('talk', talk))
+        for item in day.items.filter(session__isnull=True).order_by('start_time'):
+            timeline.append(('item', item))
+
+        timeline.sort(key=lambda e: e[1].start_time or datetime.time(0, 0))
+
+        for entry_type, obj in timeline:
+            if entry_type == 'session':
+                check_space(12 * mm)
+                y -= CHAIR_BEFORE
+                # Chair выровнен по той же сетке — в колонке имени
+                c.setFillColor(DARK)
+                c.setFont("DejaVu-Bold", 10)
+                chair_text = f"Chair: {obj.chair}" if obj.chair else "Session"
+                c.drawString(margin_left, y, chair_text)
+                y -= CHAIR_AFTER +  5* mm
+
+            elif entry_type in ('talk', 'item'):
+                check_space(12 * mm)
+
+                # Считаем высоту title (с переносом) заранее
+                title = obj.title or ''
+                c.setFont("DejaVu", 9)
+                words = title.split()
+                lines_count = 1
+                line = ''
+                for word in words:
+                    test = (line + ' ' + word).strip()
+                    if c.stringWidth(test, "DejaVu", 9) <= col_title_w:
+                        line = test
+                    else:
+                        lines_count += 1
+                        line = word
+                row_h = max(ROW_HEIGHT, lines_count * 4.5 * mm + 2 * mm)
+
+                check_space(row_h + 4 * mm)
+
+                # Время — жирное
+                time_str = f"{fmt_time(obj.start_time)} – {fmt_time(obj.end_time)}"
+                c.setFillColor(DARK)
+                c.setFont("DejaVu-Bold", 9)
+                c.drawString(margin_left, y, time_str)
+
+                # Имя участника
+                if hasattr(obj, 'participant') and obj.participant:
+                    c.setFillColor(DARK)
+                    c.setFont("DejaVu", 9)
+                    name = obj.participant.name
+                    while c.stringWidth(name, "DejaVu", 9) > col_name - 3*mm and len(name) > 4:
+                        name = name[:-2] + '.'
+                    c.drawString(margin_left + col_time, y, name)
+
+                # Название с переносом
+                c.setFillColor(DARK)
+                draw_wrapped(title, col_title_x, y, col_title_w, "DejaVu", 9, 4.5*mm)
+
+                y -= row_h
+
+        y -= DAY_AFTER
+
+    c.save()
+    return response
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+
+class AccommodationInfoView(APIView):
+    def get(self, request):
+        obj, _ = AccommodationInfo.objects.get_or_create(id=1)
+        serializer = AccommodationInfoSerializer(obj)
+        return Response(serializer.data)
+    
+class AccommodationOptionListView(generics.ListAPIView):
+    queryset = AccommodationOption.objects.all().order_by('order')
+    serializer_class = AccommodationOptionSerializer
+
+class AccommodationInfoEditView(APIView):
+    permission_classes = [IsAdminUser]
+    parser_classes = [JSONParser]
+
+    def patch(self, request):
+        obj, _ = AccommodationInfo.objects.get_or_create(id=1)
+        serializer = AccommodationInfoSerializer(obj, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+class AccommodationOptionEditView(APIView):
+    permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def post(self, request):
+        info, _ = AccommodationInfo.objects.get_or_create(id=1)
+        data = request.data.copy()
+        data['info'] = info.id
+        serializer = AccommodationOptionWriteSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save(info=info)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+    def patch(self, request, pk):
+        option = AccommodationOption.objects.get(pk=pk)
+        serializer = AccommodationOptionWriteSerializer(option, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        AccommodationOption.objects.get(pk=pk).delete()
+        return Response(status=204)
+
+accommodation_info_view = AccommodationInfoView.as_view()
+
+def generate_badges_pdf(request):
+    from rest_framework_simplejwt.authentication import JWTAuthentication
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import mm
+    from reportlab.pdfgen import canvas
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    import os
+
+    try:
+        auth = JWTAuthentication()
+        result = auth.authenticate(request)
+        if result is None or not result[0].is_staff:
+            return HttpResponse(status=403)
+    except Exception:
+        return HttpResponse(status=403)
+
+    # Регистрируем шрифт с поддержкой UTF-8
+    font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'DejaVuSans.ttf')
+    font_bold_path = os.path.join(os.path.dirname(__file__), 'fonts', 'DejaVuSans-Bold.ttf')
+    pdfmetrics.registerFont(TTFont('DejaVu', font_path))
+    pdfmetrics.registerFont(TTFont('DejaVu-Bold', font_bold_path))
+
+    submissions = ParticipantSubmission.objects.filter(
+        status='approved'
+    ).order_by('name')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="badges.pdf"'
+
+    page_width, page_height = A4
+
+    c = canvas.Canvas(response, pagesize=A4)
+
+    badge_w = 85 * mm
+    badge_h = 54 * mm
+    cols = 2
+    rows = 5
+
+    total_w = cols * badge_w
+    total_h = rows * badge_h
+    offset_x = (page_width - total_w) / 2
+    offset_y = (page_height - total_h) / 2
+
+    DARK_BLUE  = colors.Color(7/255, 67/255, 145/255)    # rgba(7, 67, 145, 1)
+    LIGHT_BLUE = colors.Color(0/255, 101/255, 189/255)   # rgba(0, 101, 189, 1)
+
+    MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+    badges = list(submissions)
+    i = 0
+
+    while i < len(badges):
+        for row in range(rows):
+            for col in range(cols):
+                if i >= len(badges):
+                    break
+                sub = badges[i]
+
+                x = offset_x + col * badge_w
+                y = page_height - offset_y - (row + 1) * badge_h
+
+                accent = LIGHT_BLUE if sub.is_student else DARK_BLUE
+
+                # ── Header ──
+                c.setFillColor(accent)
+                c.rect(x, y + badge_h - 9*mm, badge_w, 9*mm, fill=1, stroke=0)
+                c.setFillColor(colors.white)
+                c.setFont("DejaVu-Bold", 9)
+                c.drawCentredString(x + badge_w / 2, y + badge_h - 6*mm, "WSC 2025")
+
+                # ── Name ──
+                c.setFillColor(colors.black)
+                name = sub.name
+                font_size = 19 if len(name) <= 16 else 16 if len(name) <= 22 else 13 if len(name) <= 30 else 10
+                c.setFont("DejaVu-Bold", font_size)
+                c.drawCentredString(x + badge_w / 2, y + badge_h - 24*mm, name)
+
+                # ── Affiliation ──
+                c.setFont("DejaVu", 7.5)
+                affil = sub.affiliation or ''
+                c.drawCentredString(x + badge_w / 2, y + badge_h - 33*mm, affil)
+
+                # ── Footer ──
+                c.setFillColor(accent)
+                c.rect(x, y, badge_w, 8*mm, fill=1, stroke=0)
+                c.setFillColor(colors.white)
+                c.setFont("DejaVu", 6.5)
+                if sub.arrival_date and sub.departure_date:
+                    arr = sub.arrival_date
+                    dep = sub.departure_date
+                    arrival_str = f"{arr.day} {MONTHS[arr.month - 1]}"
+                    departure_str = f"{dep.day} {MONTHS[dep.month - 1]} {dep.year}"
+                    footer_text = f"{arrival_str} – {departure_str}  |  Děčín"
+                else:
+                    footer_text = "Děčín"
+                c.drawCentredString(x + badge_w / 2, y + 2.8*mm, footer_text)
+
+                # ── Линия разреза ──
+                c.setStrokeColor(colors.HexColor('#aaaaaa'))
+                c.setLineWidth(0.3)
+                c.setDash(2, 3)
+                c.rect(x, y, badge_w, badge_h, fill=0, stroke=1)
+                c.setDash()
+
+                i += 1
+
+        if i < len(badges):
+            c.showPage()
+
+    c.save()
+    return response
 
 class ReactView(APIView):
     serializer_class = ReactSerializer
@@ -293,3 +642,69 @@ class SessionUpdateTimeView(generics.UpdateAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
     http_method_names = ['patch']
+
+class HikingRouteListView(generics.ListAPIView):
+    queryset = HikingRoute.objects.all()
+    serializer_class = HikingRouteSerializer
+
+class HikingRouteEditView(generics.CreateAPIView):
+    queryset = HikingRoute.objects.all()
+    serializer_class = HikingRouteSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+
+class HikingStopEditView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def post(self, request):
+        serializer = HikingStopSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+    def patch(self, request, pk):
+        stop = HikingStop.objects.get(pk=pk)
+        serializer = HikingStopSerializer(stop, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        HikingStop.objects.get(pk=pk).delete()
+        return Response(status=204)
+
+class ConferenceInfoView(APIView):
+    def get(self, request):
+        obj, _ = ConferenceInfo.objects.get_or_create(id=1)
+        return Response(ConferenceInfoSerializer(obj).data)
+
+class ConferenceInfoEditView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    parser_classes = [JSONParser]
+
+    def patch(self, request):
+        obj, _ = ConferenceInfo.objects.get_or_create(id=1)
+        serializer = ConferenceInfoSerializer(obj, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+class OrganizerDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Organizer.objects.all()
+    serializer_class = OrganizerSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+class OrganizingCommitteeDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = OrganizingCommittee.objects.all()
+    serializer_class = OrganizingCommitteeSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]

@@ -3,87 +3,74 @@ import LogoIcon from '../../assets/logoWhite.png';
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import AdminLoginModal from '../AdminLoginModal/AdminLoginModal';
+import { useConferenceInfo } from './../hooks/useConferenceInfo';
 
 export default function Footer() {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith("/admin-panel");
+  const info = useConferenceInfo();
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   function Logo() {
     return (
       <div className={styles.logo}>
         <img className={styles.logoIcon} src={LogoIcon} alt="Logo" />
       </div>
-    )
+    );
   }
-  
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   function openAdmin(e) {
     e.preventDefault();
     setIsAdminOpen(true);
   }
-  
+
   return (
     <footer className={styles.footer}>
       <div className={styles.footerContainer}>
+
         <div className={styles.column}>
           <Logo />
-          <p>
-            This workshop was supported by the Grant Agency of the Czech
-            Technical University in Prague, grant No. SVK 44/25/F4.
-          </p>
+          <p>{info?.grant_text || ''}</p>
         </div>
 
         <div className={styles.column}>
           <h4>Venue</h4>
-          <p>
-            Faculty of Nuclear Sciences and Physical Engineering, Pohraniční
-            1288/1, 405 02 Děčín <br />
-            and MS Teams online
-          </p>
+          <p>{info?.venue_text || ''}</p>
         </div>
 
         <div className={styles.column}>
           <h4>Conference office</h4>
-          <p>
-            D. Landovská, Department of Software Engineering, Faculty of Nuclear
-            Sciences and Physical Engineering, Czech Technical University in
-            Prague
-          </p>
+          <p>{info?.conference_office_text || ''}</p>
         </div>
 
         <div className={styles.column}>
           <h4>Additional information</h4>
           <p>
-            URL:{" "}
-            <a href="http://geraldine.fjfi.cvut.cz/wsc-2025" target="_blank">
-              http://geraldine.fjfi.cvut.cz/wsc-2025
-            </a>
-            <br />
-            Conference poster:{" "}
-            <a href="#" target="_blank">
-              WSC 2025 Poster
-            </a>
-            <br />
-            Information desk: pauspetr@cvut.cz
+            {info?.website_url && (
+              <>URL: <a href={info.website_url} target="_blank" rel="noopener noreferrer">{info.website_url}</a><br /></>
+            )}
+            {info?.poster_url && (
+              <>Conference poster: <a href={info.poster_url} target="_blank" rel="noopener noreferrer">WSC Poster</a><br /></>
+            )}
+            {info?.info_desk_email && (
+              <>Information desk: <a href={`mailto:${info.info_desk_email}`}>{info.info_desk_email}</a></>
+            )}
           </p>
         </div>
+
       </div>
 
       <hr className={styles.separator} />
 
       <div className={`container ${styles.bottomRow}`}>
-        <p className={styles.bottomText}>©2025 MMG, FNSPE CTU in Prague</p>
+        <p className={styles.bottomText}>{info?.copyright_text || ''}</p>
         {!isAdminPage && (
-          
-           <a href="#"
-            className={styles.adminLink}
-            onClick={openAdmin}
-          >
+          <a href="#" className={styles.adminLink} onClick={openAdmin}>
             Administration
           </a>
         )}
       </div>
+
       {isAdminOpen && (
         <AdminLoginModal
           onClose={() => setIsAdminOpen(false)}
