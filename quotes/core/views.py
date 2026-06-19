@@ -56,20 +56,20 @@ def generate_program_pdf(request):
     page_width, page_height = A4
     c = canvas.Canvas(response, pagesize=A4)
 
-    # ── Колонки ──────────────────────────────────
+    
     margin_left  = 20 * mm
     margin_right = 20 * mm
     content_width = page_width - margin_left - margin_right
 
-    col_time  = 30 * mm   # ширина колонки времени
-    col_name  = 38 * mm   # ширина колонки имени
+    col_time  = 30 * mm  
+    col_name  = 38 * mm   
     col_title_x = margin_left + col_time + col_name
     col_title_w = content_width - col_time - col_name
 
-    ROW_HEIGHT   = 7 * mm   # расстояние между строками talks
-    CHAIR_BEFORE = 6 * mm   # отступ перед Chair
-    CHAIR_AFTER  = 2 * mm   # отступ после Chair
-    DAY_AFTER    = 10 * mm  # отступ после блока дня
+    ROW_HEIGHT   = 7 * mm  
+    CHAIR_BEFORE = 6 * mm   
+    CHAIR_AFTER  = 2 * mm   
+    DAY_AFTER    = 10 * mm  
 
     y = page_height - 20 * mm
 
@@ -91,7 +91,6 @@ def generate_program_pdf(request):
         return f"{t.hour:02d}:{t.minute:02d}" if t else ''
 
     def draw_wrapped(text, x, start_y, max_width, font, size, line_h):
-        """Рисует текст с переносом, возвращает y после последней строки."""
         c.setFont(font, size)
         words = text.split()
         line = ''
@@ -113,7 +112,7 @@ def generate_program_pdf(request):
     for day in days:
         check_space(35 * mm)
 
-        # ── Заголовок дня ──
+
         day_label = (
             f"{DAYS_EN[day.date.weekday()].upper()}, "
             f"{day.date.day} {MONTHS_EN[day.date.month - 1].upper()} {day.date.year}"
@@ -127,7 +126,7 @@ def generate_program_pdf(request):
         c.line(margin_left, y, margin_left + content_width, y)
         y -= 4 * mm
 
-        # ── Строим timeline ──
+
         timeline = []
         for session in day.sessions.all().order_by('start_time'):
             timeline.append(('session', session))
@@ -142,7 +141,7 @@ def generate_program_pdf(request):
             if entry_type == 'session':
                 check_space(12 * mm)
                 y -= CHAIR_BEFORE
-                # Chair выровнен по той же сетке — в колонке имени
+                
                 c.setFillColor(DARK)
                 c.setFont("DejaVu-Bold", 10)
                 chair_text = f"Chair: {obj.chair}" if obj.chair else "Session"
@@ -152,7 +151,7 @@ def generate_program_pdf(request):
             elif entry_type in ('talk', 'item'):
                 check_space(12 * mm)
 
-                # Считаем высоту title (с переносом) заранее
+                
                 title = obj.title or ''
                 c.setFont("DejaVu", 9)
                 words = title.split()
@@ -169,13 +168,13 @@ def generate_program_pdf(request):
 
                 check_space(row_h + 4 * mm)
 
-                # Время — жирное
+                
                 time_str = f"{fmt_time(obj.start_time)} – {fmt_time(obj.end_time)}"
                 c.setFillColor(DARK)
                 c.setFont("DejaVu-Bold", 9)
                 c.drawString(margin_left, y, time_str)
 
-                # Имя участника
+                
                 if hasattr(obj, 'participant') and obj.participant:
                     c.setFillColor(DARK)
                     c.setFont("DejaVu", 9)
@@ -184,7 +183,7 @@ def generate_program_pdf(request):
                         name = name[:-2] + '.'
                     c.drawString(margin_left + col_time, y, name)
 
-                # Название с переносом
+                
                 c.setFillColor(DARK)
                 draw_wrapped(title, col_title_x, y, col_title_w, "DejaVu", 9, 4.5*mm)
 
@@ -268,7 +267,7 @@ def generate_badges_pdf(request):
     except Exception:
         return HttpResponse(status=403)
 
-    # Регистрируем шрифт с поддержкой UTF-8
+    
     font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'DejaVuSans.ttf')
     font_bold_path = os.path.join(os.path.dirname(__file__), 'fonts', 'DejaVuSans-Bold.ttf')
     pdfmetrics.registerFont(TTFont('DejaVu', font_path))
@@ -350,7 +349,7 @@ def generate_badges_pdf(request):
                     footer_text = "Děčín"
                 c.drawCentredString(x + badge_w / 2, y + 2.8*mm, footer_text)
 
-                # ── Линия разреза ──
+                
                 c.setStrokeColor(colors.HexColor('#aaaaaa'))
                 c.setLineWidth(0.3)
                 c.setDash(2, 3)

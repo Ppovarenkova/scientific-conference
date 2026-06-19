@@ -35,7 +35,7 @@ urlpatterns = [
     path('conference-info/', ConferenceInfoView.as_view()),
     path('conference-info/edit/', ConferenceInfoEditView.as_view()),
     path("organizers/<int:pk>/", OrganizerDetailView.as_view()),
-    path("organizers/create/", OrganizerDetailView.as_view()),  # POST через ListCreateAPIView
+    path("organizers/create/", OrganizerDetailView.as_view()),  # POST ListCreateAPIView
     path("committees/<int:pk>/", OrganizingCommitteeDetailView.as_view()),
     # Public submission form
     path("submit/", SubmissionCreateView.as_view(), name="submission-create"),

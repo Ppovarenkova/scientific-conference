@@ -258,14 +258,14 @@
 }
 
 .publishBtn {
-  background: rgba(86, 164, 100, 1);
+  background: var(--secondary-color);
   color: white;
     border: none;
 
 }
 
 .publishBtn:hover {
-  background: #218838;
+  background: var(--hover-color);
 }
 
 .editBtn {

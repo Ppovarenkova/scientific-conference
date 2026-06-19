@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './EditProgram.module.css';
 import Title from '../ui/Title/Title';
 import Loader from '../ui/Loader/Loader';
 import { clearProgramDirty } from '../../utils/programRefresh';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
+import Modal from '../ui/Modal/Modal';
 
 function TimeSelect({ onChange }) {
   const [hours, setHours] = useState('');
@@ -41,6 +44,40 @@ function TimeSelect({ onChange }) {
     </div>
   );
 }
+function useModal() {
+  const [modal, setModal] = useState({ isOpen: false });
+
+  const showAlert = useCallback((message, title = '') => {
+    return new Promise(resolve => {
+      setModal({
+        isOpen: true,
+        title,
+        message,
+        confirmText: 'OK',
+        onConfirm: () => { setModal({ isOpen: false }); resolve(true); },
+        onCancel: null,
+        type: 'default',
+      });
+    });
+  }, []);
+
+  const showConfirm = useCallback((message, title = '') => {
+    return new Promise(resolve => {
+      setModal({
+        isOpen: true,
+        title,
+        message,
+        confirmText: 'Confirm',
+        cancelText: 'Cancel',
+        onConfirm: () => { setModal({ isOpen: false }); resolve(true); },
+        onCancel: () => { setModal({ isOpen: false }); resolve(false); },
+        type: 'default',
+      });
+    });
+  }, []);
+
+  return { modal, showAlert, showConfirm };
+}
 
 export default function EditProgram() {
   const [unscheduledTalks, setUnscheduledTalks] = useState([]);
@@ -50,6 +87,7 @@ export default function EditProgram() {
   const [showDayForm, setShowDayForm] = useState(false);
   const [newDate, setNewDate] = useState('');
   const navigate = useNavigate();
+  const { modal, showAlert, showConfirm } = useModal();
 
   useEffect(() => {
     fetchData();
@@ -87,9 +125,16 @@ export default function EditProgram() {
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ date })
       });
-      if (res.ok) { alert('Day added successfully!'); fetchData(); }
-      else { const data = await res.json(); alert(`Failed to add day: ${JSON.stringify(data)}`); }
-    } catch { alert('Connection error'); }
+      if (res.ok) { 
+        await showAlert('Day added successfully!', 'Success');
+        fetchData();
+      } else {
+        const data = await res.json();
+        await showAlert(`Failed to add day: ${JSON.stringify(data)}`, 'Error');
+      }
+    } catch (error) {
+      await showAlert('Connection error', 'Error');
+    }
   }
 
   async function scheduleTalk(talkId, dayId, startTime, endTime, sessionId = null) {
@@ -100,22 +145,37 @@ export default function EditProgram() {
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ day: dayId, start_time: startTime, end_time: endTime, session: sessionId })
       });
-      if (res.ok) { alert('Talk scheduled successfully!'); fetchData(); }
-      else alert('Failed to schedule talk');
-    } catch { alert('Connection error'); }
+      if (res.ok) { 
+        await showAlert('Talk scheduled successfully!', 'Success'); 
+        fetchData(); 
+      }
+      else { 
+        await showAlert('Failed to schedule talk', 'Error'); 
+      }
+    } catch (error) {
+      await showAlert('Connection error', 'Error');
+    }
   }
 
-  async function deleteTalk(talkId) {
-    if (!window.confirm('Are you sure you want to delete this talk?')) return;
-    const token = localStorage.getItem("access_token");
+   async function deleteTalk(talkId) {
+    const confirmed = await showConfirm('Are you sure you want to delete this talk?', 'Delete Talk');
+    if (!confirmed) return;
+    const token = localStorage.getItem('access_token');
     try {
       const res = await fetch(`http://localhost:8000/api/admin/talks/${talkId}/delete/`, {
         method: 'DELETE',
-        headers: { "Authorization": `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) { alert('Talk deleted successfully!'); fetchData(); }
-      else { const data = await res.json(); alert(`Failed to delete talk: ${data.error || 'Unknown error'}`); }
-    } catch { alert('Connection error'); }
+      if (res.ok) {
+        await showAlert('Talk deleted successfully!', 'Success');
+        fetchData();
+      } else {
+        const data = await res.json();
+        await showAlert(`Failed to delete talk: ${data.error || 'Unknown error'}`, 'Error');
+      }
+    } catch {
+      await showAlert('Connection error', 'Error');
+    }
   }
 
   async function createSession(dayId, chair) {
@@ -126,9 +186,12 @@ export default function EditProgram() {
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ day: dayId, chair })
       });
-      if (res.ok) { alert('Session created successfully!'); fetchData(); }
-      else alert('Failed to create session');
-    } catch { alert('Connection error'); }
+      if (res.ok) { 
+        await showAlert('Session created successfully!', 'Success'); 
+        fetchData(); 
+      }
+      else await showAlert('Failed to create session', 'Error');
+    } catch { await showAlert('Connection error', 'Error'); }
   }
 
   async function createBreak(dayId, title, startTime, endTime) {
@@ -139,9 +202,12 @@ export default function EditProgram() {
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ day: dayId, title, talk_type: 'break', start_time: startTime, end_time: endTime })
       });
-      if (res.ok) { alert('Break added successfully!'); fetchData(); }
-      else alert('Failed to add break');
-    } catch { alert('Connection error'); }
+      if (res.ok) { 
+        await showAlert('Break added successfully!', 'Success'); 
+        fetchData(); 
+      }
+      else await showAlert('Failed to add break', 'Error');
+    } catch { await showAlert('Connection error', 'Error'); }
   }
 
   async function updateTime(type, id, startTime, endTime) {
@@ -155,13 +221,16 @@ export default function EditProgram() {
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ start_time: startTime, end_time: endTime })
       });
-      if (res.ok) { alert('Time updated!'); fetchData(); }
-      else alert('Failed to update time');
-    } catch { alert('Connection error'); }
+      if (res.ok) { 
+        await showAlert('Time updated!', 'Success'); 
+        fetchData(); 
+      }
+      else await showAlert('Failed to update time', 'Error');
+    } catch { await showAlert('Connection error', 'Error'); }
   }
 
-  function handleCreateDay() {
-    if (!newDate) { alert('Please select a date'); return; }
+  async function handleCreateDay() {
+    if (!newDate) { await showAlert('Please select a date', 'Error'); return; }
     createDay(newDate);
     setShowDayForm(false);
     setNewDate('');
@@ -169,6 +238,7 @@ export default function EditProgram() {
 
   return (
     <div className={styles.container}>
+        <Modal {...modal} />
       <button onClick={() => navigate("/admin-panel")} className={styles.backBtn}>← Back</button>
 
       <Title text="Unscheduled Talks" />
@@ -190,6 +260,7 @@ export default function EditProgram() {
                     onSchedule={scheduleTalk}
                     onDelete={deleteTalk}
                     sessions={sessions}
+                    showAlert={showAlert}
                   />
                 ))}
               </div>
@@ -226,6 +297,7 @@ export default function EditProgram() {
                   onCreateBreak={createBreak}
                   onCreateSession={createSession}
                   onUpdateTime={updateTime}
+                  showAlert={showAlert}
                 />
               ))}
             </div>
@@ -236,7 +308,7 @@ export default function EditProgram() {
   );
 }
 
-function TalkCard({ talk, days, onSchedule, onDelete, sessions }) {
+function TalkCard({ talk, days, onSchedule, onDelete, sessions, showAlert }) {
   const [selectedDay, setSelectedDay] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -245,8 +317,8 @@ function TalkCard({ talk, days, onSchedule, onDelete, sessions }) {
 
   const daySessions = sessions?.filter(s => String(s.day) === String(selectedDay)) || [];
 
-  function handleSchedule() {
-    if (!selectedDay || !startTime || !endTime) { alert('Please fill all fields'); return; }
+  async function handleSchedule() {
+    if (!selectedDay || !startTime || !endTime) { await showAlert('Please fill all fields', 'Error'); return; }
     onSchedule(talk.id, selectedDay, startTime, endTime, selectedSession || null);
   }
 
@@ -304,7 +376,7 @@ function TalkCard({ talk, days, onSchedule, onDelete, sessions }) {
   );
 }
 
-function DaySchedule({ day, onCreateBreak, onCreateSession, onUpdateTime }) {
+function DaySchedule({ day, onCreateBreak, onCreateSession, onUpdateTime, showAlert }) {
   const [showBreakForm, setShowBreakForm] = useState(false);
   const [breakTitle, setBreakTitle] = useState('Coffee Break');
   const [breakStart, setBreakStart] = useState('');
@@ -314,17 +386,18 @@ function DaySchedule({ day, onCreateBreak, onCreateSession, onUpdateTime }) {
   const [editingItem, setEditingItem] = useState(null);
   const [editStart, setEditStart] = useState('');
   const [editEnd, setEditEnd] = useState('');
+  
 
   function formatTime(t) { return t ? t.substring(0, 5) : ''; }
 
-  function handleAddBreak() {
-    if (!breakStart || !breakEnd) { alert('Please set start and end time'); return; }
+  async function handleAddBreak() {
+    if (!breakStart || !breakEnd) { await showAlert('Please set start and end time', 'Error'); return; }
     onCreateBreak(day.id, breakTitle, breakStart, breakEnd);
     setShowBreakForm(false); setBreakTitle('Coffee Break'); setBreakStart(''); setBreakEnd('');
   }
 
-  function handleAddSession() {
-    if (!sessionChair.trim()) { alert('Please enter chair name'); return; }
+  async function handleAddSession() {
+    if (!sessionChair.trim()) { await showAlert('Please enter chair name', 'Error'); return; }
     onCreateSession(day.id, sessionChair);
     setShowSessionForm(false); setSessionChair('');
   }
@@ -334,8 +407,8 @@ function DaySchedule({ day, onCreateBreak, onCreateSession, onUpdateTime }) {
     setShowBreakForm(false); setShowSessionForm(false);
   }
 
-  function handleSaveTime() {
-    if (!editStart || !editEnd) { alert('Please set both start and end time'); return; }
+  async function handleSaveTime() {
+    if (!editStart || !editEnd) { await showAlert('Please set both start and end time', 'Error'); return; }
     onUpdateTime(editingItem.type, editingItem.data.id, editStart, editEnd);
     setEditingItem(null);
   }
@@ -353,7 +426,9 @@ function DaySchedule({ day, onCreateBreak, onCreateSession, onUpdateTime }) {
                   <div className={styles.sessionHeader}>
                     <span className={styles.time}>{formatTime(item.start_time)} - {formatTime(item.end_time)}</span>
                     <span className={styles.sessionTitle}>Chair: {item.data.chair}</span>
-                    <button className={styles.editTimeBtn} onClick={() => handleStartEdit('session', item.data)}>Edit</button>
+                    <button className={styles.editTimeBtn} onClick={() => handleStartEdit('session', item.data)}>
+                      <FontAwesomeIcon icon={faPenToSquare} />
+                    </button>
                   </div>
                   {item.data.talks?.length > 0 && (
                     <div className={styles.sessionTalks}>
@@ -364,7 +439,9 @@ function DaySchedule({ day, onCreateBreak, onCreateSession, onUpdateTime }) {
                             {talk.participant?.name && <span className={styles.speakerName}>{talk.participant.name}{' — '}</span>}
                             {talk.title}
                           </span>
-                          <button className={styles.editTimeBtn} onClick={() => handleStartEdit('talk', talk)}>Edit</button>
+                          <button className={styles.editTimeBtn} onClick={() => handleStartEdit('talk', talk)}>
+                            <FontAwesomeIcon icon={faPenToSquare} />
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -379,7 +456,9 @@ function DaySchedule({ day, onCreateBreak, onCreateSession, onUpdateTime }) {
                       <span className={styles.speakerName}>{' — '}{item.data.participant.name}</span>
                     )}
                   </span>
-                  <button className={styles.editTimeBtn} onClick={() => handleStartEdit(item.type, item.data)}>Edit</button>
+                  <button className={styles.editTimeBtn} onClick={() => handleStartEdit(item.type, item.data)}>
+                    <FontAwesomeIcon icon={faPenToSquare} />
+                  </button>
                 </div>
               )}
             </div>

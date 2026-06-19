@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import styles from './ParticipantsInfo.module.css';
 import Title from '../ui/Title/Title';
 import Loader from '../ui/Loader/Loader';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleCheck } from '@fortawesome/free-solid-svg-icons';
 
 export default function ParticipantsInfo() {
   const [submissions, setSubmissions] = useState([]);
@@ -64,11 +66,15 @@ export default function ParticipantsInfo() {
                   <tr key={sub.id}>
                     <td>{idx + 1}</td>
                     <td className={styles.nameCell}>{sub.name}</td>
-                    <td className={styles.center}>
-                      {sub.is_student ? '✅' : ''}
+                    <td style={{ textAlign: 'center', padding: '10px 0' }}>
+                      {sub.is_student
+                        ? <FontAwesomeIcon icon={faCircleCheck} className={styles.checkIcon} />
+                        : ''}
                     </td>
-                    <td className={styles.center}>
-                      {sub.abstract_title ? '✅' : ''}
+                    <td style={{ textAlign: 'center', padding: '10px 0' }}>
+                      {sub.abstract_title
+                        ? <FontAwesomeIcon icon={faCircleCheck} className={styles.checkIcon} />
+                        : ''}
                     </td>
                     <td>
                       {sub.arrival_date && sub.departure_date

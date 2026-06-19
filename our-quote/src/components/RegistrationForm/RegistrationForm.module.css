@@ -183,8 +183,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .photoPreview {
-  position: relative;
-  display: inline-block;
+  
+    display:flex;
+    width: 50%;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .photoPreview img {
@@ -196,25 +199,26 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .removePhoto {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  background-color: #dc3545;
+  
+  background-color: var(--secondary-color);
   color: white;
   border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  font-size: 16px;
+  padding: 8px 20px;
+  font-size: 15px;
+  font-weight: 300;
+  font-family: 'Metrophobic', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .removePhoto:hover {
-  background-color: #c82333;
+  background-color: var(--primary-color);
 }
 
 .hint {

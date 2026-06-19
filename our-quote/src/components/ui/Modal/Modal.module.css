@@ -13,19 +13,23 @@
   padding: 24px;
   width: 400px;
   max-width: 90%;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
 }
+
 .title {
-    font-family: var(--font-main);
-    font-size: 26px;
-    color: var(--primary-color); 
-    margin-bottom: 15px;
-    font-weight: 400;
+  font-family: var(--font-main);
+  font-size: 26px;
+  color: var(--primary-color);
+  margin-bottom: 15px;
+  font-weight: 400;
 }
+
 .message {
-font-family: var(--font-main);
-margin-bottom: 25px;
+  font-family: var(--font-main);
+  margin-bottom: 25px;
 }
+
 .actions {
   margin-top: 20px;
   display: flex;
@@ -34,7 +38,7 @@ margin-bottom: 25px;
 }
 
 .confirmBtn {
-  background: var(--secondary-color);
+  background-color: var(--secondary-color);
   color: white;
   border: none;
   padding: 8px 14px;
@@ -42,13 +46,18 @@ margin-bottom: 25px;
   cursor: pointer;
   text-transform: uppercase;
 }
+.confirmBtn:hover {
+  background-color: var(--primary-color);
+}
 
 .cancelBtn {
-  background: #e5e5e5;
+  background-color: #e5e5e5;
   border: none;
   padding: 8px 14px;
   font-family: var(--font-title);
   text-transform: uppercase;
   cursor: pointer;
 }
-
+.cancelBtn:hover {
+  background-color: #c0c0c0;
+}

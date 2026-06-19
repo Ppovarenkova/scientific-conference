@@ -1,10 +1,47 @@
 import styles from './RegistrationForm.module.css';
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Title from '../ui/Title/Title';
 import { useConferenceInfo } from './../hooks/useConferenceInfo';
+import Modal from '../ui/Modal/Modal';
+
+function useModal() {
+  const [modal, setModal] = useState({ isOpen: false });
+
+  const showAlert = useCallback((message, title = '') => {
+    return new Promise(resolve => {
+      setModal({
+        isOpen: true,
+        title,
+        message,
+        confirmText: 'OK',
+        onConfirm: () => { setModal({ isOpen: false }); resolve(true); },
+        onCancel: null,
+        type: 'default',
+      });
+    });
+  }, []);
+
+  const showConfirm = useCallback((message, title = '') => {
+    return new Promise(resolve => {
+      setModal({
+        isOpen: true,
+        title,
+        message,
+        confirmText: 'Confirm',
+        cancelText: 'Cancel',
+        onConfirm: () => { setModal({ isOpen: false }); resolve(true); },
+        onCancel: () => { setModal({ isOpen: false }); resolve(false); },
+        type: 'default',
+      });
+    });
+  }, []);
+
+  return { modal, showAlert, showConfirm };
+}
 
 export default function RegistrationForm() {
   const info = useConferenceInfo();
+  const { modal, showAlert, showConfirm } = useModal();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -88,7 +125,7 @@ export default function RegistrationForm() {
         });
 
         if (response.ok) {
-          alert("✅ Registration successful! Your submission is pending review.");
+          await showAlert("Your submission is pending review.", "Registration successful!");
           setFormData({
             name: "",
             email: "",
@@ -107,11 +144,11 @@ export default function RegistrationForm() {
           setWordCount(0);
         } else {
           const errorData = await response.json();
-          alert(`❌ Registration failed: ${JSON.stringify(errorData)}`);
+          await showAlert(` Registration failed: ${JSON.stringify(errorData)}`, "Error");
         }
       } catch (error) {
         console.error("Error:", error);
-        alert("❌ Connection error. Please try again.");
+        await showAlert(" Connection error. Please try again.", "Error");
       }
     }
   };
@@ -165,6 +202,7 @@ export default function RegistrationForm() {
 
   return (
     <section className={styles.formSection}>
+        <Modal {...modal} />
       <Title text="Registration Form" />
       <div className={styles.fadeIn}>
 
@@ -250,7 +288,7 @@ export default function RegistrationForm() {
                 <div className={styles.photoPreview}>
                   <img src={photoPreview} alt="Preview" />
                   <button type="button" onClick={removePhoto} className={styles.removePhoto}>
-                    ✕ Remove
+                    Remove
                   </button>
                 </div>
               )}
