@@ -4,6 +4,14 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { applyBaseUrlToFetch } from './configuredFetch';
+
+if (
+  process.env.REACT_APP_BACKEND_API_BASE_URL !== undefined &&
+  process.env.REACT_APP_BACKEND_API_BASE_URL !== ''
+) {
+  applyBaseUrlToFetch(process.env.REACT_APP_BACKEND_API_BASE_URL);
+}
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

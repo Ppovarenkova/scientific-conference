@@ -42,6 +42,17 @@ class TalkSerializer(serializers.ModelSerializer):
     abstract = AbstractSerializer(read_only=True)
     abstract_id = serializers.IntegerField(source="abstract.id", read_only=True)
 
+    session = serializers.PrimaryKeyRelatedField(
+        queryset=Session.objects.all(),
+        required=False,
+        allow_null=True
+    )
+    day = serializers.PrimaryKeyRelatedField(
+        queryset=ConferenceDay.objects.all(),
+        required=False,
+        allow_null=True
+    )
+
     class Meta:
         model = Talk
         fields = [

@@ -18,6 +18,9 @@ from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
 
 from .models import *
 from .serializers import *
@@ -484,29 +487,25 @@ class TalkScheduleUpdateView(generics.UpdateAPIView):
     serializer_class = TalkSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
-    
-    def update(self, request, *args, **kwargs):
+    http_method_names = ['patch']
+
+    def patch(self, request, *args, **kwargs):
         talk = self.get_object()
 
-        day_id = request.data.get('day')
-        start_time = request.data.get('start_time')
-        end_time = request.data.get('end_time')
+        serializer = self.get_serializer(talk, data=request.data, partial=True)
+        if serializer.is_valid():
+            updated_talk = serializer.save()
 
-        if not day_id or not start_time or not end_time:
-            return Response(
-            {"error": "day, start_time and end_time are required"},
-            status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        talk.day_id = day_id
-        talk.session_id = request.data.get('session')  
-        talk.start_time = start_time   
-        talk.end_time = end_time
-        talk.is_scheduled = True
-        talk.save()
-        
-        serializer = self.get_serializer(talk)
-        return Response(serializer.data)
+            if updated_talk.day and updated_talk.start_time and updated_talk.end_time:
+                updated_talk.is_scheduled = True
+            else:
+                updated_talk.is_scheduled = False
+
+            updated_talk.save()
+
+            return Response(self.get_serializer(updated_talk).data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Admin: publish submission
 @api_view(['POST'])
@@ -707,3 +706,27 @@ class OrganizingCommitteeDetailView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def delete_session(request, pk):
+    try:
+        session = Session.objects.get(pk=pk)
+        session.talks.all().update(session=None)
+        session.delete()
+        return Response(status=204)
+    except Session.DoesNotExist:
+        return Response({'error': 'Not found'}, status=404)
+    
+@api_view(['PATCH'])
+@permission_classes([IsAdminUser])
+def update_session(request, pk):
+    try:
+        session = Session.objects.get(pk=pk)
+        chair = request.data.get('chair')
+        if chair is not None:
+            session.chair = chair
+            session.save()
+        return Response({'id': session.id, 'chair': session.chair})
+    except Session.DoesNotExist:
+        return Response({'error': 'Not found'}, status=404)
