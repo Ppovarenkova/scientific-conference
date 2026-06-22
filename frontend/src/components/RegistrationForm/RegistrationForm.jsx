@@ -1,7 +1,7 @@
 import styles from './RegistrationForm.module.css';
 import { useState, useCallback } from "react";
 import Title from '../ui/Title/Title';
-import { useConferenceInfo } from './../hooks/useConferenceInfo';
+import { useConferenceInfo } from '../hooks/useConferenceInfo';
 import Modal from '../ui/Modal/Modal';
 
 function useModal() {
