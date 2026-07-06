@@ -19,23 +19,25 @@ export default function Organisers() {
   }, []);
 
   return (
-    <section className={styles.organisersSection}>
-      <Title text="Organisers" />
-       {loading ? (
-        <Loader />
-      ) : (
-        <div className={`${styles.cardsContainer} ${styles.fadeIn}`}>
-          {organisers.map(person => (
-            <HomeCard
-              key={person.id}
-              name={person.name}
-              department={person.department}
-              email={person.email}
-              photo={person.photo}
-            />
-          ))}
-        </div>
-      )}
-    </section>
+   <section className={styles.organisersSection}>
+  <div className={styles.cardsWrapper}>
+    <Title text="Organisers" />
+    {loading ? (
+      <Loader />
+    ) : (
+      <div className={`${styles.cardsContainer} ${styles.fadeIn}`}>
+        {organisers.map(person => (
+          <HomeCard
+            key={person.id}
+            name={person.name}
+            department={person.department}
+            email={person.email}
+            photo={person.photo}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+</section>
   );
 }

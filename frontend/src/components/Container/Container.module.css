@@ -1,9 +1,13 @@
 .container {
-    width: 1200px;
-    margin: auto;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  
 }
 
-.containerWrapper{
-    width: 100%;
-    background-color: rgba(107, 107, 107, 1);
+.containerWrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }

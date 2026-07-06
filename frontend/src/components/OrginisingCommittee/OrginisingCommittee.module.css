@@ -1,15 +1,32 @@
 .committeeSection {
     background-color: var(--accent-color);
+    width: 100%;
+    overflow-x: hidden;
 }
+
 .container {
-  padding: 50px 80px;
+  padding: clamp(24px, 6vw, 50px) clamp(16px, 8vw, 80px);
   text-align: left;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
+
 .cardsContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 3vw, 30px);
 }
 
+@media (max-width: 900px) {
+  .cardsContainer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 
-
+@media (max-width: 600px) {
+  .cardsContainer {
+    grid-template-columns: 1fr;
+  }
+}

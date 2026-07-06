@@ -1,32 +1,23 @@
 .header {
     background-color: var(--accent-color);
-    padding: 10px 18px;
+    padding: 10px clamp(12px, 3vw, 18px);
     text-align: center;
     border-bottom: 2px solid var(--secondary-color);
-    position:sticky;
-    top:0;
+    position: sticky;
+    top: 0;
     z-index: 1000;
 }
 
-/* LINKS */
-.whiteLink {
-    text-decoration: none;
-    color: var(--secondary-color)!important;
-    font-family: var(--font-main);
-    font-size: 18px;
-    text-transform: uppercase;
-    font-weight: 400;
-}
-.whiteLink:hover,
-.whiteLink:focus,
-.whiteLink:active {
-    color: var(--hover-color)!important;  
-}
-.venueLink {
-  cursor: pointer !important;
-  display: inline-flex;
+.inner {
+  position: relative;
+  display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 24px);
+  box-sizing: border-box;
 }
 
 /* LOGO */
@@ -36,29 +27,79 @@
   cursor: pointer;
 }
 .logoIcon {
-  width: 170px;
-  height: 70px;
-}
-.inner {
-  position: relative;
+  width: clamp(120px, 20vw, 170px);
+  height: auto;
+  max-width: 100%;
 }
 
-
-.navBar > *:not(:last-child) {
-  margin-right: 32px; /*gap-5 */
+/* BURGER BUTTON */
+.burger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: clamp(24px, 5vw, 30px);
+  height: clamp(18px, 4vw, 22px);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  z-index: 1100;
 }
+.burger span {
+  display: block;
+  height: 3px;
+  width: 100%;
+  background-color: var(--secondary-color);
+  border-radius: 2px;
+  transition: all 0.25s ease;
+}
+.burgerOpen span:nth-child(1) {
+  transform: translateY(9px) rotate(45deg);
+}
+.burgerOpen span:nth-child(2) {
+  opacity: 0;
+}
+.burgerOpen span:nth-child(3) {
+  transform: translateY(-9px) rotate(-45deg);
+}
+
+/* LINKS */
+.whiteLink {
+    text-decoration: none;
+    color: var(--secondary-color) !important;
+    font-family: var(--font-main);
+    font-size: clamp(14px, 1.4vw, 18px);
+    text-transform: uppercase;
+    font-weight: 400;
+}
+.whiteLink:hover,
+.whiteLink:focus,
+.whiteLink:active {
+    color: var(--hover-color) !important;
+}
+.venueLink {
+  cursor: pointer !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .navBar {
   display: flex;
   justify-content: flex-end;
   align-items: center;
 }
+.navBar > *:not(:last-child) {
+  margin-right: clamp(16px, 3vw, 32px);
+}
 .navList {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
 }
 .navItem {
   position: relative;
-  margin-right: 60px; /* ← РАВНОМЕРНЫЙ ОТСТУП */
+  margin-right: clamp(20px, 4vw, 60px);
 }
 .navItem:last-child {
   margin-right: 0;
@@ -68,7 +109,7 @@
 .navItem:not(:last-child)::after {
   content: "";
   position: absolute;
-  right: -32px;
+  right: clamp(-40px, -3vw, -32px);
   top: 50%;
   transform: translateY(-50%);
   width: 1px;
@@ -76,48 +117,130 @@
   background-color: var(--secondary-color);
 }
 
-/* DROPDOWN POSITION */
+/* DROPDOWN */
 .dropdownWrapper {
   position: relative;
 }
-
-/*ARROW */
 .arrow {
   font-size: 10px;
   margin-left: 5px;
   transition: transform 0.2s ease;
 }
-
-/* DROPDOWN MENU */
 .dropdownMenu {
   position: absolute;
   top: 64px;
-  left: -80px;
+  left: clamp(-40px, -5vw, -80px);
   background: white;
   padding: 10px 0;
   border-radius: 6px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
   animation: fadeIn 0.2s ease;
   z-index: 100;
-  min-width: 180px;
+  min-width: clamp(140px, 25vw, 180px);
 }
-
 .dropdownItem {
   display: block;
-  padding: 10px 18px;
+  padding: 10px clamp(12px, 3vw, 18px);
   color: #003b87;
   text-decoration: none;
   white-space: nowrap;
   font-family: var(--font-main);
-  font-size: 18px;
+  font-size: clamp(14px, 1.4vw, 18px);
 }
-
 .dropdownItem:hover {
   background: #eaf0ff;
 }
 
-/* FADE IN ANIMATION */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===================== MOBILE ===================== */
+@media (max-width: 768px) {
+  .burger {
+    display: flex;
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+  }
+
+  .navBar {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    height: 100vh;
+    width: min(260px, 80vw);
+    background-color: var(--accent-color);
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 90px clamp(16px, 4vw, 24px);
+    transition: right 0.3s ease;
+    box-shadow: -4px 0 15px rgba(0,0,0,0.2);
+    z-index: 1050;
+  }
+
+  .navBarOpen {
+    right: 0;
+  }
+
+  .navBar > *:not(:last-child) {
+    margin-right: 0;
+  }
+
+  .navList {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .navItem {
+    margin-right: 0;
+    margin-bottom: 24px;
+    width: 100%;
+  }
+  .navItem:last-child {
+    margin-bottom: 0;
+  }
+
+  .navItem:not(:last-child)::after {
+    display: none;
+  }
+
+  .dropdownWrapper {
+    width: 100%;
+  }
+
+  .dropdownMenu {
+    position: static;
+    top: auto;
+    left: auto;
+    box-shadow: none;
+    padding-left: 12px;
+    margin-top: 8px;
+    min-width: unset;
+    background: transparent;
+  }
+
+  .dropdownItem {
+    color: var(--secondary-color);
+    padding: 8px 0;
+  }
+}
+
+@media (min-width: 769px) {
+  .navBar {
+    position: static;
+    height: auto;
+    width: auto;
+    background: none;
+    padding: 0;
+    flex-direction: row;
+    box-shadow: none;
+  }
 }

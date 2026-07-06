@@ -10,7 +10,7 @@ export default function Hero() {
 
   return (
     <section className={styles.hero}>
-      <div className={`container d-flex ${styles.container}`}>
+      <div className={styles.container}>
         <div className={styles.leftSide}>
           <h1 className={styles.mainTitle}>
             {info ? `${info.title} ${info.year}` : 'Workshop on Scientific Computing 2025'}

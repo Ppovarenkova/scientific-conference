@@ -1,33 +1,38 @@
 .footer {
   background-color: var(--secondary-color);
   color: white;
-  padding: 50px 60px;
-  padding-bottom: 25px;
+  padding: clamp(24px, 6vw, 50px) clamp(16px, 6vw, 60px);
+  padding-bottom: clamp(16px, 3vw, 25px);
   font-family: var(--font-title);
   font-weight: 300;
   letter-spacing: 0.5px;
-
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .footerContainer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 24px;
 }
 
 .column {
-  flex: 1 1 150px;
+  flex: 1 1 180px;
+  min-width: 0;
 }
 
 .column:not(:last-child) {
-  margin-right: 20px;
+  margin-right: 0;
 }
 .column:first-child {
-  flex: 2 1 190px; /* в 2 раза шире, чем остальные */
+  flex: 2 1 220px;
   max-width: 400px;
 }
 
 .column h4 {
-  font-size: 20px;
+  font-size: clamp(15px, 1.8vw, 20px);
   margin-bottom: 20px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -35,18 +40,15 @@
 
 .column p,
 .column a {
-  font-size: 16px;
+  font-size: clamp(13px, 1.5vw, 16px);
   color: #fff;
   text-decoration: none;
   line-height: 1.6;
+  word-break: break-word;
 }
 
 .column a:hover {
   text-decoration: underline;
-}
-
-.column p:first-child {
-  font-size: 70px;
 }
 
 .logo {
@@ -56,7 +58,9 @@
 }
 
 .logoIcon {
-  width: 200px
+  width: clamp(120px, 18vw, 200px);
+  max-width: 100%;
+  height: auto;
 }
 
 .separator {
@@ -66,21 +70,21 @@
   border: none;
   border-top: 1px solid #ffffff;
   width: 100%;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .bottomRow {
   margin-top: 30px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   font-size: 0.9rem;
 }
 
 .adminLink {
   color: #fff;
-  font-size: 17px;
+  font-size: clamp(14px, 1.5vw, 17px);
   text-decoration: underline;
 }
 
@@ -93,8 +97,22 @@ p {
 }
 
 .bottomText {
-  font-size: 16px;
+  font-size: clamp(13px, 1.5vw, 16px);
   font-weight: 300;
   letter-spacing: 0.5px;
+}
 
+@media (max-width: 768px) {
+  .footerContainer {
+    flex-direction: column;
+  }
+
+  .column:first-child {
+    max-width: 100%;
+  }
+
+  .bottomRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

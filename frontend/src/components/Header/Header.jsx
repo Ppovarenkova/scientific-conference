@@ -1,20 +1,48 @@
 import styles from './Header.module.css';
 import { ReactComponent as LogoIcon } from '../../assets/logo.svg';
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Header() {
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    const toggleMenu = () => setMenuOpen((prev) => !prev);
+    const closeMenu = () => setMenuOpen(false);
+
+
+    useEffect(() => {
+        document.body.style.overflow = menuOpen ? 'hidden' : '';
+    }, [menuOpen]);
+
     return (
         <header className={styles.header}>
-            <div className={`container d-flex justify-content-between align-items-center ${styles.inner}`}>
-                <Logo />
-                <Navbar />
+            <div className={styles.inner}>
+                <Logo onNavigate={closeMenu} />
+
+                <button
+                    className={`${styles.burger} ${menuOpen ? styles.burgerOpen : ''}`}
+                    onClick={toggleMenu}
+                    aria-label="Toggle menu"
+                    aria-expanded={menuOpen}
+                >
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                
+
+                {menuOpen && (
+                    <div className={styles.overlay} onClick={closeMenu} />
+                )}
+
+                <Navbar isOpen={menuOpen} onNavigate={closeMenu} />
             </div>
         </header>
     )
 }
 
-function Logo() {
+function Logo({ onNavigate }) {
     const location = useLocation();
 
     const handleLogoClick = (e) => {
@@ -22,6 +50,7 @@ function Logo() {
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
+        onNavigate?.();
     };
 
     return (
@@ -31,56 +60,79 @@ function Logo() {
     );
 }
 
-function Navbar() {
-    const [isOpen, setIsOpen] = useState(false);
+function Navbar({ isOpen, onNavigate }) {
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     let timeout;
 
     const open = () => {
         clearTimeout(timeout);
-        setIsOpen(true);
+        setDropdownOpen(true);
     };
 
     const close = () => {
-        timeout = setTimeout(() => setIsOpen(false), 250); // ← задержка закрытия
+        timeout = setTimeout(() => setDropdownOpen(false), 250);
+    };
+
+    const handleClick = () => {
+        setDropdownOpen((prev) => !prev);
     };
 
     return (
-        <nav className={styles.navBar}>
-    <div className={styles.navList}>
-        <div className={styles.navItem}>
-            <Link className={`nav-link ${styles.whiteLink}`} to="/registration">Registration</Link>
-        </div>
-
-        <div className={styles.navItem}>
-            <Link className={`nav-link ${styles.whiteLink}`} to="/program">Program</Link>
-        </div>
-
-        <div className={styles.navItem}>
-            <Link className={`nav-link ${styles.whiteLink}`} to="/participants">Participants</Link>
-        </div>
-
-        <div className={styles.navItem}>
-            <Link className={`nav-link ${styles.whiteLink}`} to="/abstracts">Abstracts</Link>
-        </div>
-
-        {/* DROPDOWN */}
-        <div
-            className={`${styles.navItem} ${styles.dropdownWrapper}`}
-            onMouseEnter={open}
-            onMouseLeave={close}
-        >
-            <Link className={`nav-link ${styles.whiteLink}`} to="/venue">
-                Venue <span className={styles.arrow}>▼</span>
-            </Link>
-
-            {isOpen && (
-                <div className={styles.dropdownMenu}>
-                    <Link to="/accommodation" className={styles.dropdownItem}>Accommodation</Link>
-                    <Link to="/hiking" className={styles.dropdownItem}>Hiking excursion</Link>
+        <nav className={`${styles.navBar} ${isOpen ? styles.navBarOpen : ''}`}>
+            <div className={styles.navList}>
+                <div className={styles.navItem}>
+                    <Link className={`nav-link ${styles.whiteLink}`} to="/registration" onClick={onNavigate}>
+                        Registration
+                    </Link>
                 </div>
-            )}
-        </div>
-    </div>
-</nav>
+
+                <div className={styles.navItem}>
+                    <Link className={`nav-link ${styles.whiteLink}`} to="/program" onClick={onNavigate}>
+                        Program
+                    </Link>
+                </div>
+
+                <div className={styles.navItem}>
+                    <Link className={`nav-link ${styles.whiteLink}`} to="/participants" onClick={onNavigate}>
+                        Participants
+                    </Link>
+                </div>
+
+                <div className={styles.navItem}>
+                    <Link className={`nav-link ${styles.whiteLink}`} to="/abstracts" onClick={onNavigate}>
+                        Abstracts
+                    </Link>
+                </div>
+
+                {/* DROPDOWN */}
+                <div
+                    className={`${styles.navItem} ${styles.dropdownWrapper}`}
+                    onMouseEnter={open}
+                    onMouseLeave={close}
+                >
+                    <Link
+                        className={`nav-link ${styles.whiteLink} ${styles.venueLink}`}
+                        to="/venue"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleClick();
+                        }}
+                    >
+                        Venue <span className={styles.arrow}>▼</span>
+                    </Link>
+
+                    {dropdownOpen && (
+                        <div className={styles.dropdownMenu}>
+                            <Link to="/accommodation" className={styles.dropdownItem} onClick={onNavigate}>
+                                Accommodation
+                            </Link>
+                            <Link to="/hiking" className={styles.dropdownItem} onClick={onNavigate}>
+                                Hiking excursion
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </nav>
     );
 }

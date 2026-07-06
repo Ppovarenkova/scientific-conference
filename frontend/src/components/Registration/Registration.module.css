@@ -1,32 +1,41 @@
 .registration {
   background-color: var(--accent-color);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .container {
-  padding: 50px 80px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 24px;
+  padding: clamp(24px, 6vw, 50px) clamp(16px, 8vw, 80px);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .leftSide {
-  max-width: 60%;
+  max-width: min(60%, 700px);
+  width: 100%;
+  flex: 1 1 300px;
+  min-width: 0;
 }
 
 section.registration .description {
-  font-size: 20px;
+  font-size: clamp(14px, 1.8vw, 20px);
   color: #222;
   margin: 0;
-  font-weight: 400 !important;
+  font-weight: 300 !important;
   letter-spacing: 0.5px;
-  font-weight: 300;
 }
 
 section.registration .strong {
-  font-size: 20px;
+  font-size: clamp(14px, 1.8vw, 20px);
   color: #222;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   letter-spacing: 0.5px;
-  font-weight: 600;
   margin-bottom: 10px;
 }
 
@@ -37,32 +46,33 @@ ol {
 }
 
 li {
-  font-size: 20px;
+  font-size: clamp(14px, 1.8vw, 20px);
   color: #222;
   font-weight: 400 !important;
   letter-spacing: 0.5px;
 }
 
 .deadline {
-  font-size: 20px;
+  font-size: clamp(14px, 1.8vw, 20px);
   margin-top: 2rem;
   font-weight: 600;
   color: #000;
-  font-weight: 600;
   letter-spacing: 0.5px;
 }
 
 .rightSide {
   display: flex;
   align-items: end;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .button {
   background-color: var(--secondary-color);
   color: white;
   border: none;
-  padding: 10px 35px;
-  font-size: 22px;
+  padding: clamp(10px, 1.5vw, 12px) clamp(20px, 3vw, 35px);
+  font-size: clamp(13px, 1.6vw, 20px);
   font-weight: 300;
   font-family: 'Metrophobic', sans-serif;
   letter-spacing: 1px;
@@ -74,8 +84,31 @@ li {
   cursor: pointer;
   transition: background-color 0.3s ease;
   text-decoration: none;
+  white-space: nowrap;
+  width: max-content;
 }
 
 .button:hover {
   background-color: #004494;
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .leftSide {
+    max-width: 100%;
+  }
+
+  .rightSide {
+    width: 100%;
+  }
+
+  .button {
+    width: 100%;
+    white-space: normal;
+    font-size: clamp(13px, 3.5vw, 16px);
+  }
 }

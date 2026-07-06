@@ -62,7 +62,7 @@ export default function Footer() {
 
       <hr className={styles.separator} />
 
-      <div className={`container ${styles.bottomRow}`}>
+      <div className={styles.bottomRow}>
         <p className={styles.bottomText}>{info?.copyright_text || ''}</p>
         {!isAdminPage && (
           <a href="#" className={styles.adminLink} onClick={openAdmin}>
