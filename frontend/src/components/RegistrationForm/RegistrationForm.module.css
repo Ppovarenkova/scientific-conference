@@ -1,47 +1,55 @@
 .formSection {
   background-color: var(--accent-color);
-  padding: 60px 80px;
+  padding: clamp(24px, 6vw, 60px) clamp(16px, 8vw, 80px);
+  box-sizing: border-box;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: clamp(16px, 2.5vw, 24px);
   max-width: 800px;
   border: 1px solid #1e73be;
-  padding: 40px 60px;
+  padding: clamp(20px, 5vw, 40px) clamp(16px, 6vw, 60px);
   margin: auto;
+  box-sizing: border-box;
 }
+
 .instructions {
     font-family: var(--font--main);
-    font-size: 18px;
+    font-size: clamp(14px, 1.8vw, 18px);
     font-weight: 400;
     margin-bottom: 15px;
     letter-spacing: 0.5px;
 }
+
 .deadline {
     font-family: var(--font--main);
-    font-size: 18px;
+    font-size: clamp(14px, 1.8vw, 18px);
     font-weight: 600;
     letter-spacing: 0.5px;
-    margin-bottom: 50px;
+    margin-bottom: clamp(24px, 5vw, 50px);
 }
+
 .field {
   display: flex;
   flex-direction: column;
 }
 
-
-
-.field input,
+.field input:not([type="checkbox"]),
 .field textarea {
-  padding: 10px 12px;
-  font-size: 16px;
+  padding: clamp(8px, 1.5vw, 10px) clamp(10px, 2vw, 12px);
+  font-size: clamp(14px, 1.6vw, 16px);
   border: 1px solid #ccc;
   border-radius: 6px;
   margin-bottom: 8px;
   font-family: 'Roboto', sans-serif;
+  box-sizing: border-box;
+  width: 100%;
 }
+
 input:focus {
   outline: none;
   border: 1px solid #0056b3;
@@ -57,15 +65,21 @@ textarea:focus {
 
 .fieldRow {
   display: flex;
-  gap: 24px;
+  gap: clamp(12px, 3vw, 24px);
+  flex-wrap: wrap;
+}
+
+.fieldRow > div {
+  flex: 1 1 200px;
+  min-width: 0;
 }
 
 .button {
   background-color: var(--secondary-color);
   color: white;
   border: none;
-  padding: 8px 60px;
-  font-size: 23px;
+  padding: clamp(8px, 2vw, 8px) clamp(30px, 8vw, 60px);
+  font-size: clamp(16px, 2.5vw, 23px);
   font-weight: 300;
   font-family: 'Metrophobic', sans-serif;
   letter-spacing: 1px;
@@ -77,7 +91,9 @@ textarea:focus {
   cursor: pointer;
   transition: background-color 0.3s ease;
   margin: auto;
-  margin-top: 30px;
+  margin-top: clamp(16px, 3vw, 30px);
+  width: auto;
+  max-width: 100%;
 }
 
 .button:hover {
@@ -89,15 +105,17 @@ textarea:focus {
   font-size: 14px;
   margin-top: 4px;
 }
+
 .date {
   margin-right: 20px;
-      font-family: var(--font--main);
-    font-size: 18px;
-    font-weight: 400;
+  font-family: var(--font--main);
+  font-size: clamp(14px, 1.8vw, 18px);
+  font-weight: 400;
 }
+
 .label {
     font-family: var(--font--main);
-    font-size: 18px;
+    font-size: clamp(14px, 1.8vw, 18px);
     font-weight: 400;
     margin-bottom: 10px;
 }
@@ -107,11 +125,13 @@ input[type="date"] {
   color: #222;
   border: none;
   border-radius: 8px;
-  padding: 12px 16px;
-  font-size: 16px;
+  padding: clamp(10px, 2vw, 12px) clamp(12px, 2.5vw, 16px);
+  font-size: clamp(14px, 1.6vw, 16px);
   font-family: 'Roboto', sans-serif;
   outline: none;
   transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 input[type="date"]:focus {
@@ -123,6 +143,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(30%) sepia(60%) saturate(500%) hue-rotate(180deg);
   cursor: pointer;
 }
+
 .separator {
     margin: 0;
     opacity: 100%;
@@ -133,10 +154,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     width: 100%;
     margin-right: auto;
 }
+
 .fadeIn {
     opacity: 0;
     animation: fadeInAnim 0.4s ease forwards;
 }
+
 .required {
   color: #dc3545;
   font-weight: 600;
@@ -153,13 +176,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .field textarea[rows="3"] {
   min-height: 80px;
 }
+
 @keyframes fadeInAnim {
     to {
         opacity: 1;
     }
 }
 
-/* Photo upload styles */
 .photoUpload {
   margin-top: 8px;
 }
@@ -169,10 +192,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   background-color: #f0f0f0;
   border: 2px dashed #ccc;
   border-radius: 8px;
-  padding: 20px 40px;
+  padding: clamp(14px, 3vw, 20px) clamp(20px, 6vw, 40px);
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 16px;
+  font-size: clamp(14px, 1.6vw, 16px);
   color: #666;
 }
 
@@ -183,28 +206,28 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .photoPreview {
-  
-    display:flex;
-    width: 50%;
-  justify-content: space-between;
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
   align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .photoPreview img {
-  max-width: 200px;
-  max-height: 200px;
+  max-width: clamp(100px, 25vw, 200px);
+  max-height: clamp(100px, 25vw, 200px);
   border-radius: 8px;
   border: 2px solid #e0e0e0;
   object-fit: cover;
 }
 
 .removePhoto {
-  
   background-color: var(--secondary-color);
   color: white;
   border: none;
-  padding: 8px 20px;
-  font-size: 15px;
+  padding: clamp(6px, 1.5vw, 8px) clamp(14px, 3vw, 20px);
+  font-size: clamp(13px, 1.5vw, 15px);
   font-weight: 300;
   font-family: 'Metrophobic', sans-serif;
   letter-spacing: 1px;
@@ -226,4 +249,46 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   margin-top: 8px;
   color: #999;
   font-size: 13px;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+}
+.checkboxLabel{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-family: var(--font--main);
+  font-size: clamp(14px, 1.8vw, 18px);
+  font-weight: 400;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .fieldRow {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .fieldRow > div {
+    flex: 1 1 auto;
+  }
+
+  .date {
+    margin-right: 0;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .button {
+    width: 100%;
+    padding: 12px 20px;
+  }
+
+  .photoPreview {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

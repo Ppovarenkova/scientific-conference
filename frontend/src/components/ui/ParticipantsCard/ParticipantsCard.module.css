@@ -1,29 +1,37 @@
 .card {
   border: 1px solid #1e73be;
-  padding: 20px;
+  padding: clamp(12px, 2.5vw, 20px);
   background-color: #fff;
   box-sizing: border-box;
   align-items: center;
   text-align: center;
+  width: 100%;
+}
+
+.topRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .name {
-  font-size: 26px;
+  font-size: clamp(16px, 2.5vw, 26px);
   font-weight: 400;
   margin-bottom: 15px;
 }
 
 .department {
-  font-size: 17px;
+  font-size: clamp(13px, 1.5vw, 17px);
   line-height: 1.4;
   margin-bottom: 15px;
 }
 
 .image {
-  width: 100px;
-  height: 100px;
+  width: clamp(60px, 10vw, 100px);
+  height: clamp(60px, 10vw, 100px);
   object-fit: cover;
-  border-radius: 50%; 
+  border-radius: 50%;
   margin-bottom: 1rem;
 }
 
@@ -31,8 +39,8 @@
   background-color: var(--secondary-color);
   color: white;
   border: none;
-  padding: 10px 15px;
-  font-size: 16px;
+  padding: clamp(8px, 1.8vw, 10px) clamp(12px, 2.5vw, 15px);
+  font-size: clamp(13px, 1.5vw, 16px);
   font-weight: 300;
   font-family: 'Metrophobic', sans-serif;
   letter-spacing: 1px;
@@ -44,8 +52,59 @@
   cursor: pointer;
   transition: background-color 0.3s ease;
   margin: auto;
+  white-space: nowrap;
 }
 
 .button:hover {
   background-color: #004494;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 10px 12px;
+  }
+
+  .topRow {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: 15px;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .image {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .name {
+    font-size: 15px;
+    margin-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .department {
+    font-size: 12px;
+    margin-bottom: 0;
+    line-height: 1.2;
+  }
+
+  .button {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
 }

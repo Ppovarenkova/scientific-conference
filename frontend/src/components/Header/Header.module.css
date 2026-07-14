@@ -37,30 +37,29 @@
   display: none;
   flex-direction: column;
   justify-content: space-between;
+  align-items: center;
   width: clamp(24px, 5vw, 30px);
   height: clamp(18px, 4vw, 22px);
   cursor: pointer;
   background: none;
   border: none;
   padding: 0;
-  z-index: 1100;
+ z-index: 1101;
 }
-.burger span {
+
+.line {
   display: block;
-  height: 3px;
+  height: 2px;
   width: 100%;
   background-color: var(--secondary-color);
   border-radius: 2px;
-  transition: all 0.25s ease;
 }
-.burgerOpen span:nth-child(1) {
-  transform: translateY(9px) rotate(45deg);
-}
-.burgerOpen span:nth-child(2) {
-  opacity: 0;
-}
-.burgerOpen span:nth-child(3) {
-  transform: translateY(-9px) rotate(-45deg);
+
+.closeIcon {
+  font-size: clamp(22px, 5vw, 28px);
+  line-height: 1;
+  color: var(--secondary-color);
+  font-weight: 400;
 }
 
 /* LINKS */
@@ -77,11 +76,18 @@
 .whiteLink:active {
     color: var(--hover-color) !important;
 }
-.venueLink {
-  cursor: pointer !important;
+.venueRow {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+.arrow {
+  font-size: 10px;
+  margin-left: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  padding: 4px;
 }
 
 .navBar {

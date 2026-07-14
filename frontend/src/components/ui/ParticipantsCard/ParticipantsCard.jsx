@@ -9,16 +9,19 @@ export default function ParticipantsCard({ name, department, email, abstractId, 
     navigate(`/abstracts?abstract=${abstractId}`);
   }
 
-const imgSrc = photo
-  ? (photo.startsWith("http") ? photo : `http://localhost:8000${photo}`)
-  : avatar;
-
+  const imgSrc = photo
+    ? (photo.startsWith("http") ? photo : `http://localhost:8000${photo}`)
+    : avatar;
 
   return (
     <div className={styles.card}>
-      <img src={imgSrc} alt={name} className={styles.image} />
-      <h3 className={styles.name}>{name}</h3>
-      <p className={styles.department}>{department}</p>
+      <div className={styles.topRow}>
+        <img src={imgSrc} alt={name} className={styles.image} />
+        <div className={styles.info}>
+          <h3 className={styles.name}>{name}</h3>
+          <p className={styles.department}>{department}</p>
+        </div>
+      </div>
       <button className={styles.button} onClick={goToAbstract}>
         TO THE ABSTRACT
       </button>

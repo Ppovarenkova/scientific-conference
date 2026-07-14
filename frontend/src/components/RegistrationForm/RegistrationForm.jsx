@@ -392,6 +392,7 @@ export default function RegistrationForm() {
           <div className={styles.field}>
             <label className={styles.checkboxLabel}>
               <input
+              className={styles.checkbox}
                 type="checkbox"
                 name="is_student"
                 checked={formData.is_student}

@@ -2,12 +2,16 @@ import styles from './Header.module.css';
 import { ReactComponent as LogoIcon } from '../../assets/logo.svg';
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useLockBodyScroll } from './../hooks/useLockBodyScroll';
 
 export default function Header() {
     const [menuOpen, setMenuOpen] = useState(false);
 
     const toggleMenu = () => setMenuOpen((prev) => !prev);
+    useLockBodyScroll(menuOpen);
     const closeMenu = () => setMenuOpen(false);
+
+    
 
 
     useEffect(() => {
@@ -20,17 +24,23 @@ export default function Header() {
                 <Logo onNavigate={closeMenu} />
 
                 <button
-                    className={`${styles.burger} ${menuOpen ? styles.burgerOpen : ''}`}
+                    className={styles.burger}
                     onClick={toggleMenu}
                     aria-label="Toggle menu"
                     aria-expanded={menuOpen}
                 >
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                    {menuOpen ? (
+                        <span className={styles.closeIcon}>✕</span>
+                    ) : (
+                        <>
+                            <span className={styles.line}></span>
+                            <span className={styles.line}></span>
+                            <span className={styles.line}></span>
+                        </>
+                    )}
                 </button>
 
-                
+
 
                 {menuOpen && (
                     <div className={styles.overlay} onClick={closeMenu} />
@@ -110,16 +120,25 @@ function Navbar({ isOpen, onNavigate }) {
                     onMouseEnter={open}
                     onMouseLeave={close}
                 >
-                    <Link
-                        className={`nav-link ${styles.whiteLink} ${styles.venueLink}`}
-                        to="/venue"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            handleClick();
-                        }}
-                    >
-                        Venue <span className={styles.arrow}>▼</span>
-                    </Link>
+                    <div className={styles.venueRow}>
+                        <Link
+                            className={`nav-link ${styles.whiteLink} ${styles.venueLink}`}
+                            to="/venue"
+                            onClick={onNavigate}
+                        >
+                            Venue
+                        </Link>
+                        <span
+                            className={styles.arrow}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleClick();
+                            }}
+                        >
+                            ▼
+                        </span>
+                    </div>
 
                     {dropdownOpen && (
                         <div className={styles.dropdownMenu}>

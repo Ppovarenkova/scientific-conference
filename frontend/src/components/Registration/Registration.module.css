@@ -27,8 +27,9 @@ section.registration .description {
   font-size: clamp(14px, 1.8vw, 20px);
   color: #222;
   margin: 0;
-  font-weight: 300 !important;
+  font-weight: 600 !important;
   letter-spacing: 0.5px;
+  font-family: var(--font-main);
 }
 
 section.registration .strong {

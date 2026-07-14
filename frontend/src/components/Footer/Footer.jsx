@@ -4,12 +4,15 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import AdminLoginModal from '../AdminLoginModal/AdminLoginModal';
 import { useConferenceInfo } from './../hooks/useConferenceInfo';
+import { useLockBodyScroll } from './../hooks/useLockBodyScroll';
 
 export default function Footer() {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith("/admin-panel");
   const info = useConferenceInfo();
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+
+  useLockBodyScroll(isAdminOpen);
 
   function Logo() {
     return (

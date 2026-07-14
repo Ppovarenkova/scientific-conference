@@ -15,7 +15,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 24px;
+  gap: clamp(16px, 3vw, 24px);
 }
 
 .column {
@@ -33,7 +33,7 @@
 
 .column h4 {
   font-size: clamp(15px, 1.8vw, 20px);
-  margin-bottom: 20px;
+  margin-bottom: clamp(10px, 2.5vw, 20px);
   font-weight: 600;
   letter-spacing: 0.5px;
 }
@@ -54,7 +54,7 @@
 .logo {
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: clamp(8px, 2vw, 15px);
 }
 
 .logoIcon {
@@ -66,14 +66,14 @@
 .separator {
   margin: 0;
   opacity: 80%;
-  margin-top: 2rem;
+  margin-top: clamp(1rem, 4vw, 2rem);
   border: none;
   border-top: 1px solid #ffffff;
   width: 100%;
 }
 
 .bottomRow {
-  margin-top: 30px;
+  margin-top: clamp(12px, 4vw, 30px);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -102,17 +102,40 @@ p {
   letter-spacing: 0.5px;
 }
 
+
 @media (max-width: 768px) {
   .footerContainer {
     flex-direction: column;
+    gap: 12px;
+  }
+  .column:first-child {
+    flex: 1 1 auto;
+
+  }
+  .column {
+    flex: 1 1 auto;
   }
 
   .column:first-child {
     max-width: 100%;
   }
 
+  .column h4 {
+    margin-bottom: 6px;
+  }
+
+  .logo {
+    margin-bottom: 8px;
+  }
+
+  .separator {
+    margin-top: 1rem;
+  }
+
   .bottomRow {
     flex-direction: column;
     align-items: flex-start;
+    margin-top: 12px;
+    gap: 6px;
   }
 }
