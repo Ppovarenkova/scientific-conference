@@ -389,7 +389,7 @@ function TalkCard({ talk, days, onSchedule, onDelete, sessions, showAlert }) {
       {!showScheduler ? (
         <div className={styles.talkCardActions}>
           <button className={styles.scheduleBtn} onClick={() => setShowScheduler(true)}>Add to Schedule</button>
-          <button className={styles.deleteBtn} onClick={() => onDelete(talk.id)}>Delete</button>
+          
         </div>
       ) : (
         <div className={styles.scheduler}>

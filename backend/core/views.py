@@ -421,15 +421,52 @@ class TalkDetailView(generics.RetrieveAPIView):
     serializer_class = TalkSerializer
 
 
-class OrganizerListAPIView(generics.ListAPIView):
+class OrganizerListAPIView(generics.ListCreateAPIView):
     queryset = Organizer.objects.all()
     serializer_class = OrganizerSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return []
+        return [IsAdminUser()]
+
+    def get_authenticators(self):
+        if self.request.method == 'GET':
+            return []
+        return [JWTAuthentication()]
 
 
-class OrganizingCommitteeListAPIView(generics.ListAPIView):
+class OrganizingCommitteeListAPIView(generics.ListCreateAPIView):
     queryset = OrganizingCommittee.objects.all()
     serializer_class = OrganizingCommitteeSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return []
+        return [IsAdminUser()]
+
+    def get_authenticators(self):
+        if self.request.method == 'GET':
+            return []
+        return [JWTAuthentication()]
+
+
+class OrganizerDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Organizer.objects.all()
+    serializer_class = OrganizerSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+
+class OrganizingCommitteeDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = OrganizingCommittee.objects.all()
+    serializer_class = OrganizingCommitteeSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
 # Admin Panel - JWT
 class AdminPanelView(APIView):
@@ -693,19 +730,7 @@ class ConferenceInfoEditView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 
-class OrganizerDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Organizer.objects.all()
-    serializer_class = OrganizerSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAdminUser]
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
-class OrganizingCommitteeDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = OrganizingCommittee.objects.all()
-    serializer_class = OrganizingCommitteeSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAdminUser]
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])

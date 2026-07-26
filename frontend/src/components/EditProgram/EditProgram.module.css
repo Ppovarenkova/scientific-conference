@@ -279,9 +279,10 @@ background-color: var(--secondary-color);
 }
 
 .deleteBtn {
-  flex: 1;
+  
   padding: 10px;
   background: white;
+  width: 100%;
   color: var(--secondary-color);
   border: 2px solid var(--secondary-color);
   font-size: 16px;

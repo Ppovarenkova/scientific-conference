@@ -3,22 +3,16 @@ let failedQueue = [];
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
+    if (error) prom.reject(error);
+    else prom.resolve(token);
   });
-  
   failedQueue = [];
 };
 
 export async function refreshAccessToken() {
   const refreshToken = localStorage.getItem("refresh_token");
-  
-  if (!refreshToken) {
-    return null;
-  }
+
+  if (!refreshToken) return null;
 
   try {
     const response = await fetch("http://localhost:8000/api/auth/refresh/", {
@@ -26,9 +20,7 @@ export async function refreshAccessToken() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        refresh: refreshToken
-      })
+      body: JSON.stringify({ refresh: refreshToken })
     });
 
     if (!response.ok) {
@@ -50,54 +42,49 @@ export async function refreshAccessToken() {
   }
 }
 
+function buildHeaders(options, token) {
+  const isFormData = options.body instanceof FormData;
+
+  return {
+    ...options.headers,
+    Authorization: `Bearer ${token}`,
+    ...(isFormData ? {} : {
+      "Content-Type": options.headers?.["Content-Type"] || "application/json"
+    }),
+  };
+}
+
 export async function fetchWithAuth(url, options = {}) {
   const token = localStorage.getItem("access_token");
-  
-  // First attempt
+
   const response = await fetch(url, {
     ...options,
-    headers: {
-      ...options.headers,
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": options.headers?.["Content-Type"] || "application/json",
-    }
+    headers: buildHeaders(options, token),
   });
 
-  // If 401, try to refresh token
   if (response.status === 401) {
     if (isRefreshing) {
-      // Wait for the refresh to complete
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
-      })
-        .then(token => {
-          return fetch(url, {
-            ...options,
-            headers: {
-              ...options.headers,
-              "Authorization": `Bearer ${token}`,
-              "Content-Type": options.headers?.["Content-Type"] || "application/json",
-            }
-          });
+      }).then(token => {
+        return fetch(url, {
+          ...options,
+          headers: buildHeaders(options, token),
         });
+      });
     }
 
     isRefreshing = true;
 
     try {
       const newToken = await refreshAccessToken();
-      
+
       if (newToken) {
         processQueue(null, newToken);
-        
-        // Retry original request with new token
+
         return fetch(url, {
           ...options,
-          headers: {
-            ...options.headers,
-            "Authorization": `Bearer ${newToken}`,
-            "Content-Type": options.headers?.["Content-Type"] || "application/json",
-          }
+          headers: buildHeaders(options, newToken),
         });
       } else {
         processQueue(new Error("Token refresh failed"), null);

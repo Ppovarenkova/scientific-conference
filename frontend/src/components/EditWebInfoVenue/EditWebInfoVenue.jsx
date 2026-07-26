@@ -17,7 +17,10 @@ export default function EditWebInfoVenue() {
   useEffect(() => {
     fetch(`${API}/conference-info/`)
       .then(r => r.json())
-      .then(data => { setForm(data); setLoading(false); });
+      .then(data => {
+        setForm(data);
+        setLoading(false);
+      });
   }, []);
 
   function handleChange(e) {
@@ -34,10 +37,11 @@ export default function EditWebInfoVenue() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          venue_description: form.venue_description,
-          venue_maps_url: form.venue_maps_url,
+          venue_text: form.venue_text,
+          venue_map_embed_url: form.venue_map_embed_url,
         }),
       });
+
       if (!res.ok) throw new Error();
       setSaved(true);
     } catch {
@@ -49,7 +53,10 @@ export default function EditWebInfoVenue() {
 
   return (
     <div className={styles.container}>
-      <Link to="/admin-panel/edit-web-info" className={styles.backButton}>← BACK</Link>
+      <Link to="/admin-panel/edit-web-info" className={styles.backButton}>
+        ← BACK
+      </Link>
+
       <Title text="Edit Venue" />
 
       {loading ? (
@@ -57,16 +64,15 @@ export default function EditWebInfoVenue() {
       ) : (
         <>
           <form onSubmit={handleSave} className={`${styles.form} ${styles.fadeIn}`}>
-
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>Venue</h2>
 
               <div className={styles.field}>
                 <label>Venue</label>
                 <textarea
-                  name="venue_description"
+                  name="venue_text"
                   rows={5}
-                  value={form.venue_description || ''}
+                  value={form.venue_text || ''}
                   onChange={handleChange}
                 />
               </div>
@@ -77,8 +83,8 @@ export default function EditWebInfoVenue() {
                   Google Maps → Share → Embed a map → Copy src from iframe
                 </small>
                 <input
-                  name="venue_maps_url"
-                  value={form.venue_maps_url || ''}
+                  name="venue_map_embed_url"
+                  value={form.venue_map_embed_url || ''}
                   onChange={handleChange}
                   placeholder="https://www.google.com/maps/embed?pb=..."
                 />
@@ -93,19 +99,19 @@ export default function EditWebInfoVenue() {
                 {saving ? 'Saving...' : 'SAVE CHANGES'}
               </button>
             </div>
-
           </form>
 
-          {/* Preview */}
-          {(form.venue_description || form.venue_maps_url) && (
+          {(form.venue_text || form.venue_map_embed_url) && (
             <section className={styles.section} style={{ marginTop: 40 }}>
               <h2 className={styles.sectionTitle}>Preview</h2>
-              {form.venue_description && (
-                <p className={styles.previewText}>{form.venue_description}</p>
+
+              {form.venue_text && (
+                <p className={styles.previewText}>{form.venue_text}</p>
               )}
-              {form.venue_maps_url && (
+
+              {form.venue_map_embed_url && (
                 <iframe
-                  src={form.venue_maps_url}
+                  src={form.venue_map_embed_url}
                   className={styles.mapPreview}
                   allowFullScreen=""
                   loading="lazy"

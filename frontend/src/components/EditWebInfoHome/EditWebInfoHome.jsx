@@ -73,15 +73,26 @@ export default function EditWebInfoHome() {
     fd.append('department', person.department || '');
     fd.append('email', person.email || '');
     if (person._photoFile) fd.append('photo', person._photoFile);
-    if (person.id) {
-      return fetchWithAuth(`${API}/${endpoint}/${person.id}/`, { method: 'PATCH', body: fd });
-    } else {
-      return fetchWithAuth(`${API}/${endpoint}/`, { method: 'POST', body: fd });
+
+    const url = person.id
+    ? `${API}/${endpoint}/${person.id}/`
+    : `${API}/${endpoint}/`;
+
+    const method = person.id ? 'PATCH' : 'POST';
+
+    const res = await fetchWithAuth(url, { method, body: fd });
+
+    const text = await res.text();
+
+    if (!res.ok) {
+    throw new Error(text || `Request failed with ${res.status}`);
     }
+
+  return text ? JSON.parse(text) : person;
   }
 
   async function deletePerson(endpoint, id, list, setList) {
-    if (!window.confirm('Delete this person?')) return;
+    //if (!window.confirm('Delete this person?')) return;
     if (id) {
       await fetchWithAuth(`${API}/${endpoint}/${id}/`, { method: 'DELETE' });
     }
@@ -96,9 +107,10 @@ export default function EditWebInfoHome() {
     setSaving(true);
     setPersonError('');
     setPersonSaved('');
+
     try {
-      const results = await Promise.all(list.map(p => savePerson(endpoint, p)));
-      const updated = await Promise.all(results.map(r => r.json()));
+      const updated = await Promise.all(list.map(p => savePerson(endpoint, p)));
+      //const updated = await Promise.all(results.map(r => r.json()));
       setList(updated);
       setPersonSaved(endpoint);
     } catch {

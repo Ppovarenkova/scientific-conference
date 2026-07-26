@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',   # DRF
-    'core',             # core app
+    'core.apps.CoreConfig',         # core app
     'corsheaders',      # for CORS
 ]
 
@@ -156,6 +156,11 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(hours=1),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),
 }
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@conference.local'
+
 
 # CORS settings
 REST_FRAMEWORK = {
