@@ -7,6 +7,7 @@ import { clearProgramDirty } from '../../utils/programRefresh';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 import Modal from '../ui/Modal/Modal';
+import { fetchWithAuth } from '../../utils/api';
 
 function TimeSelect({ onChange }) {
   const [hours, setHours] = useState('');
@@ -101,18 +102,36 @@ export default function EditProgram() {
 
   async function fetchData() {
     const token = localStorage.getItem("access_token");
+
     try {
       const [talksRes, programRes, sessionsRes] = await Promise.all([
-        fetch('http://localhost:8000/api/admin/talks/unscheduled/', { headers: { "Authorization": `Bearer ${token}` } }),
+        fetchWithAuth('http://localhost:8000/api/admin/talks/unscheduled/'),
         fetch('http://localhost:8000/api/program/'),
-        fetch('http://localhost:8000/api/admin/sessions/', { headers: { "Authorization": `Bearer ${token}` } }),
+        fetchWithAuth('http://localhost:8000/api/admin/sessions/'),
       ]);
-      setUnscheduledTalks(await talksRes.json());
-      setDays(await programRes.json());
-      setSessions(await sessionsRes.json());
+
+      const talksData = await talksRes.json();
+      const programData = await programRes.json();
+      const sessionsData = await sessionsRes.json();
+
+      const sortedDays = Array.isArray(programData)
+        ? [...programData].sort((a, b) => new Date(a.date) - new Date(b.date))
+        : [];
+
+      setUnscheduledTalks(Array.isArray(talksData) ? talksData : []);
+      setDays(sortedDays);
+      setSessions(Array.isArray(sessionsData) ? sessionsData : []);
+
+      if (!Array.isArray(talksData)) {
+        console.error('Unscheduled talks is not an array:', talksData);
+      }
+
       clearProgramDirty();
     } catch (error) {
       console.error("Error fetching data:", error);
+      setUnscheduledTalks([]);
+      setDays([]);
+      setSessions([]);
     } finally {
       setLoading(false);
     }
@@ -121,9 +140,8 @@ export default function EditProgram() {
   async function updateChair(sessionId, newChairName) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/sessions/${sessionId}/`, {
+      const res = await fetchWithAuth(`http://localhost:8000/api/admin/sessions/${sessionId}/`, {
         method: 'PATCH',
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ chair: newChairName })
       });
       if (res.ok) { await showAlert('Chair updated!', 'Success'); fetchData(); }
@@ -134,9 +152,8 @@ export default function EditProgram() {
   async function deleteSession(sessionId) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/sessions/${sessionId}/delete/`, {
+      const res = await fetchWithAuth(`http://localhost:8000/api/admin/sessions/${sessionId}/delete/`, {
         method: 'DELETE',
-        headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) { await showAlert('Chair deleted!', 'Success'); fetchData(); }
       else await showAlert('Failed to delete chair', 'Error');
@@ -146,9 +163,8 @@ export default function EditProgram() {
   async function moveTalk(talkId, newSessionId) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/talks/${talkId}/schedule/`, {
+      const res = await fetchWithAuth(`http://localhost:8000/api/admin/talks/${talkId}/schedule/`, {
         method: 'PATCH',
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ session: newSessionId || null })
       });
       if (!res.ok) await showAlert('Failed to move talk', 'Error');
@@ -156,21 +172,61 @@ export default function EditProgram() {
   }
 
   async function updateTalk(talkId, payload) {
-  const token = localStorage.getItem("access_token");
-  try {
-    const res = await fetch(`http://localhost:8000/api/admin/talks/${talkId}/schedule/`, {
-      method: 'PATCH',
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-    return res;
-  } catch {
-    return null;
+    const token = localStorage.getItem("access_token");
+    try {
+      const res = await fetchWithAuth(`http://localhost:8000/api/admin/talks/${talkId}/schedule/`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload)
+      });
+      return res;
+    } catch {
+      return null;
+    }
   }
-}
+
+  async function moveTalkToUnscheduled(talkId) {
+    const token = localStorage.getItem("access_token");
+    try {
+      const res = await fetchWithAuth(`http://localhost:8000/api/admin/talks/${talkId}/schedule/`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          day: null,
+          session: null,
+          start_time: null,
+          end_time: null
+        })
+      });
+      return res;
+    } catch {
+      return null;
+    }
+  }
+  async function deleteDay(dayId) {
+    const confirmed = await showConfirm(
+      'Are you sure you want to delete this day and all its scheduled items?',
+      'Delete Day'
+    );
+    if (!confirmed) return;
+
+    const token = localStorage.getItem('access_token');
+
+    try {
+      const res = await fetchWithAuth(`http://localhost:8000/api/admin/days/${dayId}/delete/`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        await showAlert(`Failed to delete day: ${data.error || 'Unknown error'}`, 'Error');
+        return;
+      }
+
+      await showAlert('Day deleted successfully!', 'Success');
+      fetchData();
+    } catch {
+      await showAlert('Connection error', 'Error');
+    }
+  }
 
   async function updateTimeOnly(type, id, startTime, endTime) {
     const token = localStorage.getItem("access_token");
@@ -178,9 +234,8 @@ export default function EditProgram() {
       ? `http://localhost:8000/api/admin/sessions/${id}/update-time/`
       : `http://localhost:8000/api/admin/talks/${id}/schedule/`;
     try {
-      const res = await fetch(url, {
+      const res = await fetchWithAuth(url, {
         method: 'PATCH',
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ start_time: startTime, end_time: endTime })
       });
       return res.ok;
@@ -198,9 +253,8 @@ export default function EditProgram() {
   async function scheduleTalk(talkId, dayId, startTime, endTime, sessionId = null) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/talks/${talkId}/schedule/`, {
+      const res = await fetchWithAuth(`http://localhost:8000/api/admin/talks/${talkId}/schedule/`, {
         method: 'PATCH',
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ day: dayId, start_time: startTime, end_time: endTime, session: sessionId })
       });
       if (res.ok) { await showAlert('Talk scheduled successfully!', 'Success'); fetchData(); }
@@ -215,9 +269,8 @@ export default function EditProgram() {
     if (!confirmed) return;
     const token = localStorage.getItem('access_token');
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/talks/${talkId}/delete/`, {
+      const res = await fetchWithAuth(`http://localhost:8000/api/admin/talks/${talkId}/delete/`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) { await showAlert('Talk deleted successfully!', 'Success'); fetchData(); }
       else {
@@ -232,9 +285,8 @@ export default function EditProgram() {
   async function createSession(dayId, chair) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetch('http://localhost:8000/api/admin/sessions/create/', {
+      const res = await fetchWithAuth('http://localhost:8000/api/admin/sessions/create/', {
         method: 'POST',
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ day: dayId, chair })
       });
       if (res.ok) { await showAlert('Session created successfully!', 'Success'); fetchData(); }
@@ -245,9 +297,8 @@ export default function EditProgram() {
   async function createBreak(dayId, title, startTime, endTime) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetch('http://localhost:8000/api/admin/talks/create-break/', {
+      const res = await fetchWithAuth('http://localhost:8000/api/admin/talks/create-break/', {
         method: 'POST',
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ day: dayId, title, talk_type: 'break', start_time: startTime, end_time: endTime })
       });
       if (res.ok) { await showAlert('Break added successfully!', 'Success'); fetchData(); }
@@ -258,9 +309,8 @@ export default function EditProgram() {
   async function createDay(date) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetch('http://localhost:8000/api/admin/days/create/', {
+      const res = await fetchWithAuth('http://localhost:8000/api/admin/days/create/', {
         method: 'POST',
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ date })
       });
       if (res.ok) { await showAlert('Day added successfully!', 'Success'); fetchData(); }
@@ -279,6 +329,10 @@ export default function EditProgram() {
     setShowDayForm(false);
     setNewDate('');
   }
+
+  const sortedDays = [...days].sort(
+  (a, b) => new Date(`${a.date}T00:00:00`) - new Date(`${b.date}T00:00:00`)
+);
 
   return (
     <div className={styles.container}>
@@ -300,7 +354,7 @@ export default function EditProgram() {
                   <TalkCard
                     key={talk.id}
                     talk={talk}
-                    days={days}
+                    days={sortedDays}
                     onSchedule={scheduleTalk}
                     onDelete={deleteTalk}
                     sessions={sessions}
@@ -334,7 +388,7 @@ export default function EditProgram() {
             </div>
 
             <div className={styles.programPreview}>
-              {days.map(day => (
+              {sortedDays.map(day => (
                 <DaySchedule
                   key={day.id}
                   day={day}
@@ -345,8 +399,10 @@ export default function EditProgram() {
                   onCreateSession={createSession}
                   onUpdateTime={updateTime}
                   onUpdateTalk={updateTalk}
-                  onUpdateTimeOnly={updateTimeOnly} 
-                  onRefresh={fetchData}               
+                  onMoveTalkToUnscheduled={moveTalkToUnscheduled}
+                  onUpdateTimeOnly={updateTimeOnly}
+                  onDeleteDay={deleteDay}
+                  onRefresh={fetchData}
                   showAlert={showAlert}
                   showConfirm={showConfirm}
                 />
@@ -389,7 +445,7 @@ function TalkCard({ talk, days, onSchedule, onDelete, sessions, showAlert }) {
       {!showScheduler ? (
         <div className={styles.talkCardActions}>
           <button className={styles.scheduleBtn} onClick={() => setShowScheduler(true)}>Add to Schedule</button>
-          
+
         </div>
       ) : (
         <div className={styles.scheduler}>
@@ -430,9 +486,9 @@ function TalkCard({ talk, days, onSchedule, onDelete, sessions, showAlert }) {
 function DaySchedule({
   day, sessions,
   onCreateBreak, onCreateSession,
-  onUpdateTime, onUpdateTimeOnly, onRefresh,  
+  onUpdateTime, onUpdateTimeOnly, onRefresh,
   onUpdateChair, onDeleteSession, onMoveTalk,
-  showAlert, showConfirm, onUpdateTalk
+  showAlert, showConfirm, onUpdateTalk, onMoveTalkToUnscheduled, onDeleteDay
 }) {
   const [showBreakForm, setShowBreakForm] = useState(false);
   const [breakTitle, setBreakTitle] = useState('Coffee Break');
@@ -511,38 +567,107 @@ function DaySchedule({
     setEditTalkEnd('');
     setEditTalkSession(currentSessionId || '');
   }
+  async function handleMoveTalkToUnscheduled() {
+    const confirmed = await showConfirm(
+      `Move "${editingTalk.talk.title}" back to unscheduled talks?`,
+      'Move to Unscheduled'
+    );
+    if (!confirmed) return;
+
+    const res = await onMoveTalkToUnscheduled(editingTalk.talk.id);
+
+    if (!res) {
+      await showAlert('Connection error', 'Error');
+      return;
+    }
+
+    if (!res.ok) {
+      const data = await res.json();
+      await showAlert(`Failed to move talk: ${JSON.stringify(data)}`, 'Error');
+      return;
+    }
+
+    await showAlert('Talk moved to unscheduled!', 'Success');
+    setEditingTalk(null);
+    onRefresh();
+  }
+  async function handleDeleteBreak() {
+    const confirmed = await showConfirm(
+      `Delete break "${editingItem.data.title}"?`,
+      'Delete Break'
+    );
+    if (!confirmed) return;
+
+    const token = localStorage.getItem('access_token');
+
+    try {
+      const res = await fetchWithAuth(`http://localhost:8000/api/admin/talks/${editingItem.data.id}/delete/`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        await showAlert(`Failed to delete break: ${data.error || 'Unknown error'}`, 'Error');
+        return;
+      }
+
+      await showAlert('Break deleted successfully!', 'Success');
+      setEditingItem(null);
+      onRefresh();
+    } catch {
+      await showAlert('Connection error', 'Error');
+    }
+  }
 
   async function handleSaveTalk() {
-  if (!editTalkStart || !editTalkEnd) {
-    await showAlert('Please set both times', 'Error');
-    return;
+    if (!editTalkStart || !editTalkEnd) {
+      await showAlert('Please set both times', 'Error');
+      return;
+    }
+
+    const res = await onUpdateTalk(editingTalk.talk.id, {
+      start_time: editTalkStart,
+      end_time: editTalkEnd,
+      session: editTalkSession || null
+    });
+
+    if (!res) {
+      await showAlert('Connection error', 'Error');
+      return;
+    }
+
+    if (!res.ok) {
+      const data = await res.json();
+      await showAlert(`Failed to update talk: ${JSON.stringify(data)}`, 'Error');
+      return;
+    }
+
+    await showAlert('Talk updated!', 'Success');
+    setEditingTalk(null);
+    onRefresh();
   }
-
-  const res = await onUpdateTalk(editingTalk.talk.id, {
-    start_time: editTalkStart,
-    end_time: editTalkEnd,
-    session: editTalkSession || null
-  });
-
-  if (!res) {
-    await showAlert('Connection error', 'Error');
-    return;
-  }
-
-  if (!res.ok) {
-    const data = await res.json();
-    await showAlert(`Failed to update talk: ${JSON.stringify(data)}`, 'Error');
-    return;
-  }
-
-  await showAlert('Talk updated!', 'Success');
-  setEditingTalk(null);
-  onRefresh();
-}
 
   return (
     <div className={styles.daySchedule}>
-      <h3>{new Date(day.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h3>
+      <div className={styles.dayHeader}>
+        <h3>
+          {new Date(day.date).toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </h3>
+
+        <button
+          type="button"
+          className={styles.dayDeleteBtn}
+          onClick={() => onDeleteDay(day.id)}
+          aria-label="Delete day"
+          title="Delete day"
+        >
+          ×
+        </button>
+      </div>
 
       {day.timeline && day.timeline.length > 0 ? (
         <div className={styles.timeline}>
@@ -586,7 +711,16 @@ function DaySchedule({
                       <span className={styles.speakerName}>{' — '}{item.data.participant.name}</span>
                     )}
                   </span>
-                  <button className={styles.editTimeBtn} onClick={() => handleEditTalk(item.data, item.data.session || null)}>
+                  <button
+                    className={styles.editTimeBtn}
+                    onClick={() => {
+                      if (item.data?.talk_type === 'break') {
+                        handleStartEdit(item.type, item.data);
+                      } else {
+                        handleEditTalk(item.data, item.data.session || null);
+                      }
+                    }}
+                  >
                     <FontAwesomeIcon icon={faPenToSquare} />
                   </button>
                 </div>
@@ -607,11 +741,22 @@ function DaySchedule({
 
       {editingItem && (
         <div className={styles.breakForm}>
-          <p className={styles.editLabel}>Edit time: <strong>{editingItem.data.title || editingItem.data.chair}</strong></p>
+          <p className={styles.editLabel}>
+            Edit time: <strong>{editingItem.data.title || editingItem.data.chair}</strong>
+          </p>
+
           <label>Start Time: <TimeSelect onChange={setEditStart} /></label>
           <label>End Time: <TimeSelect onChange={setEditEnd} /></label>
+
           <div className={styles.schedulerActions}>
             <button className={styles.saveBtn} onClick={handleSaveTime}>Save</button>
+
+            {editingItem.data?.talk_type === 'break' && (
+              <button className={styles.deleteBtn} onClick={handleDeleteBreak}>
+                Delete
+              </button>
+            )}
+
             <button className={styles.cancelBtn} onClick={() => setEditingItem(null)}>Cancel</button>
           </div>
         </div>
@@ -657,6 +802,9 @@ function DaySchedule({
           </label>
           <div className={styles.schedulerActions}>
             <button className={styles.saveBtn} onClick={handleSaveTalk}>Save</button>
+            <button className={styles.deleteBtn} onClick={handleMoveTalkToUnscheduled}>
+              Move to Unscheduled
+            </button>
             <button className={styles.cancelBtn} onClick={() => setEditingTalk(null)}>Cancel</button>
           </div>
         </div>

@@ -590,6 +590,13 @@ class UnscheduledTalkDeleteView(generics.DestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         talk = self.get_object()
 
+        if talk.talk_type == 'break':
+            talk.delete()
+            return Response(
+                {"message": "Break deleted successfully"},
+                status=status.HTTP_204_NO_CONTENT
+            )
+
         if talk.is_scheduled:
             return Response(
                 {"error": "Cannot delete a scheduled talk from here"},
@@ -597,7 +604,21 @@ class UnscheduledTalkDeleteView(generics.DestroyAPIView):
             )
 
         talk.delete()
-        return Response({"message": "Talk deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"message": "Talk deleted successfully"},
+            status=status.HTTP_204_NO_CONTENT
+        )
+    
+class ConferenceDayDeleteView(generics.DestroyAPIView):
+    queryset = ConferenceDay.objects.all()
+    serializer_class = ConferenceDaySerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+
+    def destroy(self, request, *args, **kwargs):
+        day = self.get_object()
+        day.delete()
+        return Response({"message": "Day deleted successfully"}, status=status.HTTP_200_OK)
     
 # Admin: create a break/event in schedule
 class ScheduleBreakCreateView(generics.CreateAPIView):

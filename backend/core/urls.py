@@ -14,7 +14,7 @@ from .views import (
     OrganizerListAPIView,
     OrganizingCommitteeListAPIView,
     AdminPanelView, SubmissionCreateView, SubmissionListView, SubmissionDetailView,
-    generate_program_pdf, publish_submission, UnscheduledTalksView, TalkScheduleUpdateView, UnscheduledTalkDeleteView, ScheduleBreakCreateView, SessionCreateView, SessionListView, ConferenceDayCreateView, SessionUpdateTimeView, generate_badges_pdf, AccommodationInfoView, HikingRouteListView, HikingRouteEditView, HikingStopEditView, ConferenceInfoView, ConferenceInfoEditView, OrganizerDetailView, OrganizingCommitteeDetailView
+    generate_program_pdf, publish_submission, UnscheduledTalksView, TalkScheduleUpdateView, UnscheduledTalkDeleteView, ScheduleBreakCreateView, SessionCreateView, SessionListView, ConferenceDayCreateView, SessionUpdateTimeView, generate_badges_pdf, AccommodationInfoView, HikingRouteListView, HikingRouteEditView, HikingStopEditView, ConferenceInfoView, ConferenceInfoEditView, OrganizerDetailView, OrganizingCommitteeDetailView, ConferenceDayDeleteView,
 )
 
 urlpatterns = [
@@ -57,6 +57,7 @@ urlpatterns = [
     path("admin/sessions/", SessionListView.as_view(), name="sessions-list"),
     path("admin/sessions/<int:pk>/update-time/", SessionUpdateTimeView.as_view()),
     path("admin/days/create/", ConferenceDayCreateView.as_view(), name="day-create"),
+    path("admin/days/<int:pk>/delete/", ConferenceDayDeleteView.as_view(), name="day-delete"),
     path("admin/badges/download/", generate_badges_pdf, name="download-badges"),
     path("admin/program/download/", generate_program_pdf, name="download-program"),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
