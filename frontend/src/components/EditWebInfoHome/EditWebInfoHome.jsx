@@ -5,8 +5,6 @@ import Title from '../ui/Title/Title';
 import Loader from '../ui/Loader/Loader';
 import { fetchWithAuth } from '../../utils/api';
 
-const API = 'http://localhost:8000/api';
-
 export default function EditWebInfoHome() {
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,9 +18,9 @@ export default function EditWebInfoHome() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API}/conference-info/`).then(r => r.json()),
-      fetch(`${API}/organizers/`).then(r => r.json()),
-      fetch(`${API}/committees/`).then(r => r.json()),
+      fetchWithAuth(`/api/conference-info/`).then(r => r.json()),
+      fetchWithAuth(`/api/organizers/`).then(r => r.json()),
+      fetchWithAuth(`/api/committees/`).then(r => r.json()),
     ]).then(([info, orgs, comm]) => {
       setForm(info);
       setOrganizers(orgs);
@@ -41,9 +39,8 @@ export default function EditWebInfoHome() {
     setSaving(true);
     setError('');
     try {
-      const res = await fetchWithAuth(`${API}/conference-info/edit/`, {
+      const res = await fetchWithAuth(`/api/conference-info/edit/`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error();
@@ -75,8 +72,8 @@ export default function EditWebInfoHome() {
     if (person._photoFile) fd.append('photo', person._photoFile);
 
     const url = person.id
-    ? `${API}/${endpoint}/${person.id}/`
-    : `${API}/${endpoint}/`;
+    ? `/api/${endpoint}/${person.id}/`
+    : `/api/${endpoint}/`;
 
     const method = person.id ? 'PATCH' : 'POST';
 
@@ -94,7 +91,7 @@ export default function EditWebInfoHome() {
   async function deletePerson(endpoint, id, list, setList) {
     //if (!window.confirm('Delete this person?')) return;
     if (id) {
-      await fetchWithAuth(`${API}/${endpoint}/${id}/`, { method: 'DELETE' });
+      await fetchWithAuth(`/api/${endpoint}/${id}/`, { method: 'DELETE' });
     }
     setList(list.filter(p => p.id !== id));
   }
@@ -130,7 +127,7 @@ export default function EditWebInfoHome() {
       ) : (
         <div className={styles.fadeIn}>
 
-          {/* ── Conference Info Form ── */}
+          {/* Conference Info Form */}
           <form onSubmit={handleSave} className={styles.form}>
 
             <section className={styles.section}>
@@ -198,7 +195,7 @@ export default function EditWebInfoHome() {
             </div>
           </form>
 
-          {/* ── Organising Committee ── */}
+          {/* Organising Committee */}
           <PersonSection
             title="Organising Committee"
             list={committee}
@@ -212,7 +209,7 @@ export default function EditWebInfoHome() {
             onAdd={() => addPerson(committee, setCommittee)}
           />
 
-          {/* ── Organisers ── */}
+          {/* Organisers  */}
           <PersonSection
             title="Organisers"
             list={organizers}

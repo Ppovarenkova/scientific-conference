@@ -703,12 +703,45 @@ class HikingRouteListView(generics.ListAPIView):
     queryset = HikingRoute.objects.all()
     serializer_class = HikingRouteSerializer
 
-class HikingRouteEditView(generics.CreateAPIView):
-    queryset = HikingRoute.objects.all()
-    serializer_class = HikingRouteSerializer
+class HikingRouteEditView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
+    def post(self, request):
+        serializer = HikingRouteSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+    def patch(self, request):
+        route_id = request.data.get("id")
+        if not route_id:
+            return Response({"detail": "Route id is required."}, status=400)
+
+        try:
+            route = HikingRoute.objects.get(pk=route_id)
+        except HikingRoute.DoesNotExist:
+            return Response({"detail": "Route not found."}, status=404)
+
+        serializer = HikingRouteSerializer(route, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request):
+        route_id = request.data.get("id")
+        if not route_id:
+            return Response({"detail": "Route id is required."}, status=400)
+
+        try:
+            route = HikingRoute.objects.get(pk=route_id)
+        except HikingRoute.DoesNotExist:
+            return Response({"detail": "Route not found."}, status=404)
+
+        route.delete()
+        return Response(status=204)
 class HikingStopEditView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]

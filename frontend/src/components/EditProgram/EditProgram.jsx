@@ -7,7 +7,7 @@ import { clearProgramDirty } from '../../utils/programRefresh';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 import Modal from '../ui/Modal/Modal';
-import { fetchWithAuth } from '../../utils/api';
+import { fetchWithAuth, buildMediaUrl, buildApiUrl } from '../../utils/api';
 
 function TimeSelect({ onChange }) {
   const [hours, setHours] = useState('');
@@ -105,9 +105,9 @@ export default function EditProgram() {
 
     try {
       const [talksRes, programRes, sessionsRes] = await Promise.all([
-        fetchWithAuth('http://localhost:8000/api/admin/talks/unscheduled/'),
-        fetch('http://localhost:8000/api/program/'),
-        fetchWithAuth('http://localhost:8000/api/admin/sessions/'),
+        fetchWithAuth('/api/admin/talks/unscheduled/'),
+        fetch(buildApiUrl('/api/program/')),
+        fetchWithAuth('/api/admin/sessions/'),
       ]);
 
       const talksData = await talksRes.json();
@@ -140,7 +140,7 @@ export default function EditProgram() {
   async function updateChair(sessionId, newChairName) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetchWithAuth(`http://localhost:8000/api/admin/sessions/${sessionId}/`, {
+      const res = await fetchWithAuth(`/api/admin/sessions/${sessionId}/`, {
         method: 'PATCH',
         body: JSON.stringify({ chair: newChairName })
       });
@@ -152,7 +152,7 @@ export default function EditProgram() {
   async function deleteSession(sessionId) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetchWithAuth(`http://localhost:8000/api/admin/sessions/${sessionId}/delete/`, {
+      const res = await fetchWithAuth(`/api/admin/sessions/${sessionId}/delete/`, {
         method: 'DELETE',
       });
       if (res.ok) { await showAlert('Chair deleted!', 'Success'); fetchData(); }
@@ -163,7 +163,7 @@ export default function EditProgram() {
   async function moveTalk(talkId, newSessionId) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetchWithAuth(`http://localhost:8000/api/admin/talks/${talkId}/schedule/`, {
+      const res = await fetchWithAuth(`/api/admin/talks/${talkId}/schedule/`, {
         method: 'PATCH',
         body: JSON.stringify({ session: newSessionId || null })
       });
@@ -174,7 +174,7 @@ export default function EditProgram() {
   async function updateTalk(talkId, payload) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetchWithAuth(`http://localhost:8000/api/admin/talks/${talkId}/schedule/`, {
+      const res = await fetchWithAuth(`/api/admin/talks/${talkId}/schedule/`, {
         method: 'PATCH',
         body: JSON.stringify(payload)
       });
@@ -187,7 +187,7 @@ export default function EditProgram() {
   async function moveTalkToUnscheduled(talkId) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetchWithAuth(`http://localhost:8000/api/admin/talks/${talkId}/schedule/`, {
+      const res = await fetchWithAuth(`/api/admin/talks/${talkId}/schedule/`, {
         method: 'PATCH',
         body: JSON.stringify({
           day: null,
@@ -211,7 +211,7 @@ export default function EditProgram() {
     const token = localStorage.getItem('access_token');
 
     try {
-      const res = await fetchWithAuth(`http://localhost:8000/api/admin/days/${dayId}/delete/`, {
+      const res = await fetchWithAuth(`/api/admin/days/${dayId}/delete/`, {
         method: 'DELETE',
       });
 
@@ -231,8 +231,8 @@ export default function EditProgram() {
   async function updateTimeOnly(type, id, startTime, endTime) {
     const token = localStorage.getItem("access_token");
     const url = type === 'session'
-      ? `http://localhost:8000/api/admin/sessions/${id}/update-time/`
-      : `http://localhost:8000/api/admin/talks/${id}/schedule/`;
+      ? `/api/admin/sessions/${id}/update-time/`
+      : `/api/admin/talks/${id}/schedule/`;
     try {
       const res = await fetchWithAuth(url, {
         method: 'PATCH',
@@ -253,7 +253,7 @@ export default function EditProgram() {
   async function scheduleTalk(talkId, dayId, startTime, endTime, sessionId = null) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetchWithAuth(`http://localhost:8000/api/admin/talks/${talkId}/schedule/`, {
+      const res = await fetchWithAuth(`/api/admin/talks/${talkId}/schedule/`, {
         method: 'PATCH',
         body: JSON.stringify({ day: dayId, start_time: startTime, end_time: endTime, session: sessionId })
       });
@@ -269,7 +269,7 @@ export default function EditProgram() {
     if (!confirmed) return;
     const token = localStorage.getItem('access_token');
     try {
-      const res = await fetchWithAuth(`http://localhost:8000/api/admin/talks/${talkId}/delete/`, {
+      const res = await fetchWithAuth(`/api/admin/talks/${talkId}/delete/`, {
         method: 'DELETE',
       });
       if (res.ok) { await showAlert('Talk deleted successfully!', 'Success'); fetchData(); }
@@ -285,7 +285,7 @@ export default function EditProgram() {
   async function createSession(dayId, chair) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetchWithAuth('http://localhost:8000/api/admin/sessions/create/', {
+      const res = await fetchWithAuth('/api/admin/sessions/create/', {
         method: 'POST',
         body: JSON.stringify({ day: dayId, chair })
       });
@@ -297,7 +297,7 @@ export default function EditProgram() {
   async function createBreak(dayId, title, startTime, endTime) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetchWithAuth('http://localhost:8000/api/admin/talks/create-break/', {
+      const res = await fetchWithAuth('/api/admin/talks/create-break/', {
         method: 'POST',
         body: JSON.stringify({ day: dayId, title, talk_type: 'break', start_time: startTime, end_time: endTime })
       });
@@ -309,7 +309,7 @@ export default function EditProgram() {
   async function createDay(date) {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetchWithAuth('http://localhost:8000/api/admin/days/create/', {
+      const res = await fetchWithAuth('/api/admin/days/create/', {
         method: 'POST',
         body: JSON.stringify({ date })
       });
@@ -601,7 +601,7 @@ function DaySchedule({
     const token = localStorage.getItem('access_token');
 
     try {
-      const res = await fetchWithAuth(`http://localhost:8000/api/admin/talks/${editingItem.data.id}/delete/`, {
+      const res = await fetchWithAuth(`/api/admin/talks/${editingItem.data.id}/delete/`, {
         method: 'DELETE',
       });
 

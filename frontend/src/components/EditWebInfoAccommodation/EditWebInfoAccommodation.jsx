@@ -3,16 +3,10 @@ import { Link } from 'react-router-dom';
 import styles from './EditWebInfoAccommodation.module.css';
 import Title from '../ui/Title/Title';
 import Loader from '../ui/Loader/Loader';
-import { fetchWithAuth } from '../../utils/api';
+import { fetchWithAuth, buildMediaUrl } from '../../utils/api';
+import Modal from '../ui/Modal/Modal';
 
-const API = 'http://localhost:8000/api';
-const BASE = 'http://localhost:8000';
 
-function getMediaUrl(path) {
-  if (!path) return null;
-  if (path.startsWith('http')) return path;
-  return `${BASE}${path}`;
-}
 
 export default function EditWebInfoAccommodation() {
   const [description, setDescription] = useState('');
@@ -24,8 +18,27 @@ export default function EditWebInfoAccommodation() {
   const [savedOptions, setSavedOptions] = useState(false);
   const [error, setError] = useState('');
 
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    type: 'default'
+  });
+
+  function openModal(config) {
+    setModal({
+      isOpen: true,
+      ...config
+    });
+  }
+
+  function closeModal() {
+    setModal(prev => ({ ...prev, isOpen: false }));
+  }
+
   useEffect(() => {
-    fetch(`${API}/accommodation/`)
+    fetchWithAuth(`/api/accommodation/`)
       .then(r => r.json())
       .then(data => {
         setDescription(data.description || '');
@@ -37,17 +50,38 @@ export default function EditWebInfoAccommodation() {
   async function handleSaveInfo(e) {
     e.preventDefault();
     setSavingInfo(true);
-    setError('');
+
     try {
-      const res = await fetchWithAuth(`${API}/admin/accommodation/`, {
+      const res = await fetchWithAuth('/api/admin/accommodation/', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description }),
       });
-      if (!res.ok) throw new Error();
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        openModal({
+          title: 'Save failed',
+          message: errorText || 'Failed to save description.',
+          type: 'danger',
+          onConfirm: closeModal
+        });
+        return;
+      }
+
       setSavedInfo(true);
-    } catch {
-      setError('Failed to save description.');
+      openModal({
+        title: 'Success',
+        message: 'Description saved successfully.',
+        type: 'success',
+        onConfirm: closeModal
+      });
+    } catch (error) {
+      openModal({
+        title: 'Connection error',
+        message: error.message || 'Server is unreachable.',
+        type: 'danger',
+        onConfirm: closeModal
+      });
     } finally {
       setSavingInfo(false);
     }
@@ -75,11 +109,51 @@ export default function EditWebInfoAccommodation() {
   }
 
   async function deleteOption(id, index) {
-    if (!window.confirm('Delete this option?')) return;
-    if (id) {
-      await fetchWithAuth(`${API}/admin/accommodation/options/${id}/`, { method: 'DELETE' });
+    try {
+      if (id) {
+        const res = await fetchWithAuth(`/api/admin/accommodation/options/${id}/`, {
+          method: 'DELETE'
+        });
+
+        if (!res.ok && res.status !== 204) {
+          const errorText = await res.text();
+          openModal({
+            title: 'Delete failed',
+            message: errorText || 'Failed to delete option.',
+            type: 'danger',
+            onConfirm: closeModal
+          });
+          return;
+        }
+      }
+
+      setOptions(prev => prev.filter((_, i) => i !== index));
+
+      openModal({
+        title: 'Success',
+        message: 'Option deleted successfully.',
+        type: 'success',
+        onConfirm: closeModal
+      });
+    } catch (error) {
+      openModal({
+        title: 'Connection error',
+        message: error.message || 'Server is unreachable.',
+        type: 'danger',
+        onConfirm: closeModal
+      });
     }
-    setOptions(options.filter((_, i) => i !== index));
+  }
+  function confirmDeleteOption(id, index) {
+    openModal({
+      title: 'Delete option',
+      message: 'Delete this option permanently?',
+      type: 'danger',
+      onConfirm: async () => {
+        closeModal();
+        await deleteOption(id, index);
+      }
+    });
   }
 
   async function saveOption(option) {
@@ -91,22 +165,48 @@ export default function EditWebInfoAccommodation() {
     if (option._photoFile) fd.append('photo', option._photoFile);
 
     if (option.id) {
-      return fetchWithAuth(`${API}/admin/accommodation/options/${option.id}/`, { method: 'PATCH', body: fd });
+      return fetchWithAuth(`/api/admin/accommodation/options/${option.id}/`, { method: 'PATCH', body: fd });
     } else {
-      return fetchWithAuth(`${API}/admin/accommodation/options/`, { method: 'POST', body: fd });
+      return fetchWithAuth(`/api/admin/accommodation/options/`, { method: 'POST', body: fd });
     }
   }
 
   async function handleSaveOptions() {
     setSavingOptions(true);
-    setError('');
+
     try {
       const results = await Promise.all(options.map(o => saveOption(o)));
+
+      for (const res of results) {
+        if (!res.ok) {
+          const errorText = await res.text();
+          openModal({
+            title: 'Save failed',
+            message: errorText || 'Failed to save options.',
+            type: 'danger',
+            onConfirm: closeModal
+          });
+          return;
+        }
+      }
+
       const updated = await Promise.all(results.map(r => r.json()));
       setOptions(updated);
       setSavedOptions(true);
-    } catch {
-      setError('Failed to save options.');
+
+      openModal({
+        title: 'Success',
+        message: 'Accommodation options saved successfully.',
+        type: 'success',
+        onConfirm: closeModal
+      });
+    } catch (error) {
+      openModal({
+        title: 'Connection error',
+        message: error.message || 'Server is unreachable.',
+        type: 'danger',
+        onConfirm: closeModal
+      });
     } finally {
       setSavingOptions(false);
     }
@@ -160,7 +260,7 @@ export default function EditWebInfoAccommodation() {
                   {option._photoPreview
                     ? <img src={option._photoPreview} alt="preview" className={styles.optionPhoto} />
                     : option.photo
-                      ? <img src={getMediaUrl(option.photo)} alt={option.name} className={styles.optionPhoto} />
+                      ? <img src={buildMediaUrl(option.photo)} alt={option.name} className={styles.optionPhoto} />
                       : <div className={styles.photoPlaceholder} />
                   }
                   <label className={styles.photoLabel}>
@@ -217,7 +317,7 @@ export default function EditWebInfoAccommodation() {
                 <button
                   type="button"
                   className={styles.deleteButton}
-                  onClick={() => deleteOption(option.id, i)}
+                  onClick={() => confirmDeleteOption(option.id, i)}
                 >✕</button>
               </div>
             ))}
@@ -238,6 +338,14 @@ export default function EditWebInfoAccommodation() {
                 </button>
               </div>
             </div>
+            <Modal
+              isOpen={modal.isOpen}
+              title={modal.title}
+              message={modal.message}
+              type={modal.type}
+              onConfirm={modal.onConfirm}
+              onCancel={closeModal}
+            />
           </section>
 
         </div>

@@ -4,7 +4,7 @@ import styles from './EditParticipants.module.css';
 import Title from '../ui/Title/Title';
 import avatar from '../../assets/avatar.png';
 import Loader from '../ui/Loader/Loader';
-import { fetchWithAuth } from '../../utils/api';
+import { fetchWithAuth, buildMediaUrl } from '../../utils/api';
 import EditSubmissionModal from '../EditSubmissionModal/EditSubmissionModal';
 import Modal from '../ui/Modal/Modal';
 import { markProgramDirty } from '../../utils/programRefresh';
@@ -24,55 +24,41 @@ export default function EditParticipants() {
   function closeModal() { setModal(prev => ({ ...prev, isOpen: false })); }
 
   useEffect(() => { fetchSubmissions(); }, [filter]);
-
   async function fetchSubmissions() {
     setLoading(true);
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      openModal({
-        title: "Session expired", message: "Please login again.", type: "danger",
-        onConfirm: () => { closeModal(); navigate("/"); }
-      });
-      return;
-    }
     try {
-      const res = await fetchWithAuth(`http://localhost:8000/api/admin/submissions/?status=${filter}`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (res.status === 401) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        alert("Session expired. Please login again.");
-        navigate("/");
-        return;
-      }
+      const res = await fetchWithAuth(`/api/admin/submissions/?status=${filter}`);
+
       if (res.ok) {
         const data = await res.json();
         setSubmissions(data);
+      } else {
+        const errorText = await res.text();
+        openModal({
+          title: "Load failed",
+          message: errorText || "Failed to load submissions.",
+          type: "danger",
+          onConfirm: closeModal
+        });
       }
     } catch (error) {
-      console.error("Error fetching submissions:", error);
+      openModal({
+        title: "Connection error",
+        message: error.message || "Server is unreachable.",
+        type: "danger",
+        onConfirm: closeModal
+      });
     } finally {
       setLoading(false);
     }
   }
 
   async function publishSubmission(id) {
-    const token = localStorage.getItem("access_token");
+
     try {
-      const res = await fetchWithAuth(`http://localhost:8000/api/admin/submissions/${id}/publish/`, {
-        method: 'POST',
-        headers: { "Authorization": `Bearer ${token}` }
+      const res = await fetchWithAuth(`/api/admin/submissions/${id}/publish/`, {
+        method: 'POST'
       });
-      if (res.status === 401) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        openModal({
-          title: "Session expired", message: "Please login again.", type: "danger",
-          onConfirm: () => { closeModal(); navigate("/"); }
-        });
-        return;
-      }
       if (res.ok) {
         openModal({ title: "Success", message: "Published successfully!", type: "success", onConfirm: closeModal });
         fetchSubmissions();
@@ -97,28 +83,11 @@ export default function EditParticipants() {
   async function deleteSubmission(id) {
     const submission = submissions.find(s => s.id === id);
     const isApproved = submission?.status === 'approved';
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      openModal({
-        title: "Session expired", message: "Please login again.", type: "danger",
-        onConfirm: () => { closeModal(); navigate("/"); }
-      });
-      return;
-    }
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/submissions/${id}/`, {
-        method: 'DELETE',
-        headers: { "Authorization": `Bearer ${token}` }
+      const res = await fetchWithAuth(`/api/admin/submissions/${id}/`, {
+        method: 'DELETE'
       });
-      if (res.status === 401) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        openModal({
-          title: "Session expired", message: "Please login again.", type: "danger",
-          onConfirm: () => { closeModal(); navigate("/"); }
-        });
-        return;
-      }
+      
       if (res.ok || res.status === 204) {
         markProgramDirty();
         openModal({
@@ -159,10 +128,9 @@ export default function EditParticipants() {
     return status;
   }
 
+
   function getPhotoUrl(photoPath) {
-    if (!photoPath) return null;
-    if (photoPath.startsWith('http')) return photoPath;
-    return `http://localhost:8000${photoPath}`;
+    return buildMediaUrl(photoPath);
   }
 
   function handleSaveSubmission(updatedSubmission) {

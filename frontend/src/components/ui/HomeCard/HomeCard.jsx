@@ -1,10 +1,9 @@
 import styles from './HomeCard.module.css';
 import avatar from '../../../assets/avatar.png';
+import { buildMediaUrl } from '../../../utils/api';
 
 export default function HomeCard({ name, department, email, photo }) {
-  const imgSrc = photo
-    ? (photo.startsWith("http") ? photo : `http://localhost:8000${photo}`)
-    : avatar;
+  const imgSrc = photo ? buildMediaUrl(photo) : avatar;
   return (
     <div className={styles.card}>
       <img src={imgSrc} alt={name} className={styles.image} />

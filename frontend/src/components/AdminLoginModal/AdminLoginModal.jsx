@@ -1,13 +1,13 @@
 import styles from './AdminLoginModal.module.css';
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { fetchWithAuth } from '../../utils/api';
 
 export default function AdminLoginModal({ onSuccess, onClose }) {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    // Prevent background scrolling when modal is open
     useEffect(() => {
         const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
 
@@ -26,7 +26,7 @@ export default function AdminLoginModal({ onSuccess, onClose }) {
         setLoading(true);
 
         try {
-            const res = await fetch("http://localhost:8000/api/auth/login/", {
+            const res = await fetchWithAuth("/api/auth/login/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

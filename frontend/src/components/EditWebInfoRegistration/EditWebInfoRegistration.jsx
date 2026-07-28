@@ -5,8 +5,6 @@ import Title from '../ui/Title/Title';
 import Loader from '../ui/Loader/Loader';
 import { fetchWithAuth } from '../../utils/api';
 
-const API = 'http://localhost:8000/api';
-
 export default function EditWebInfoRegistration() {
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,7 +13,7 @@ export default function EditWebInfoRegistration() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`${API}/conference-info/`)
+    fetchWithAuth(`/api/conference-info/`)
       .then(r => r.json())
       .then(data => { setForm(data); setLoading(false); });
   }, []);
@@ -30,9 +28,8 @@ export default function EditWebInfoRegistration() {
     setSaving(true);
     setError('');
     try {
-      const res = await fetchWithAuth(`${API}/conference-info/edit/`, {
+      const res = await fetchWithAuth(`/api/conference-info/edit/`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           registration_fee_note: form.registration_fee_note,
           registration_instructions: form.registration_instructions,

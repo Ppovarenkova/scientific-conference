@@ -3,13 +3,14 @@ import Title from '../ui/Title/Title';
 import ParticipantsCard from '../ui/ParticipantsCard/ParticipantsCard';
 import { useEffect, useState } from "react";
 import Loader from '../ui/Loader/Loader';
+import { buildApiUrl } from '../../utils/api';
 
 export default function Participants() {
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/participants/")
+    fetch(buildApiUrl("/api/participants/"))
       .then(res => res.json())
       .then(data => {
         setParticipants(data);

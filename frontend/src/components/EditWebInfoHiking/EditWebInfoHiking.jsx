@@ -3,16 +3,8 @@ import { Link } from 'react-router-dom';
 import styles from './EditWebInfoHiking.module.css';
 import Title from '../ui/Title/Title';
 import Loader from '../ui/Loader/Loader';
-import { fetchWithAuth } from '../../utils/api';
-
-const API = 'http://localhost:8000/api';
-const BASE = 'http://localhost:8000';
-
-function getMediaUrl(path) {
-  if (!path) return null;
-  if (path.startsWith('http')) return path;
-  return `${BASE}${path}`;
-}
+import { fetchWithAuth, buildMediaUrl } from '../../utils/api';
+import Modal from '../ui/Modal/Modal';
 
 export default function EditWebInfoHiking() {
   const [routes, setRoutes] = useState([]);
@@ -20,9 +12,27 @@ export default function EditWebInfoHiking() {
   const [saving, setSaving] = useState(false);
   const [savedRoute, setSavedRoute] = useState(null);
   const [error, setError] = useState('');
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    type: 'default'
+  });
+
+  function openModal(config) {
+    setModal({
+      isOpen: true,
+      ...config
+    });
+  }
+
+  function closeModal() {
+    setModal(prev => ({ ...prev, isOpen: false }));
+  }
 
   useEffect(() => {
-    fetch(`${API}/hiking/`)
+    fetchWithAuth(`/api/hiking/`)
       .then(r => r.json())
       .then(data => { setRoutes(data); setLoading(false); });
   }, []);
@@ -39,40 +49,113 @@ export default function EditWebInfoHiking() {
 
   async function deleteRoute(routeIndex) {
     const route = routes[routeIndex];
-    if (!window.confirm('Delete this route and all its stops?')) return;
-    if (route.id) {
-      await fetchWithAuth(`${API}/hiking/admin/`, { method: 'DELETE' });
+
+    try {
+      if (route.id) {
+        const res = await fetchWithAuth(`/api/hiking/admin/`, {
+          method: 'DELETE',
+          body: JSON.stringify({ id: route.id }),
+        });
+
+        if (!res.ok && res.status !== 204) {
+          const errorText = await res.text();
+          openModal({
+            title: 'Delete failed',
+            message: errorText || 'Failed to delete route.',
+            type: 'danger',
+            onConfirm: closeModal
+          });
+          return;
+        }
+      }
+
+      setRoutes(prev => prev.filter((_, i) => i !== routeIndex));
+
+      openModal({
+        title: 'Success',
+        message: 'Route deleted successfully.',
+        type: 'success',
+        onConfirm: closeModal
+      });
+    } catch (error) {
+      openModal({
+        title: 'Connection error',
+        message: error.message || 'Server is unreachable.',
+        type: 'danger',
+        onConfirm: closeModal
+      });
     }
-    setRoutes(routes.filter((_, i) => i !== routeIndex));
+  }
+  function confirmDeleteRoute(routeIndex) {
+    openModal({
+      title: 'Delete route',
+      message: 'Delete this route and all its stops?',
+      type: 'danger',
+      onConfirm: async () => {
+        closeModal();
+        await deleteRoute(routeIndex);
+      }
+    });
   }
 
   async function saveRoute(routeIndex) {
     const route = routes[routeIndex];
     setSaving(true);
-    setError('');
+
     try {
-      let savedRouteData;
+      let res;
+
       if (route.id) {
-        const res = await fetchWithAuth(`${API}/hiking/admin/`, {
+        res = await fetchWithAuth(`/api/hiking/admin/`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: route.id, name: route.name, way_description: route.way_description, map_url: route.map_url }),
+          body: JSON.stringify({
+            id: route.id,
+            name: route.name,
+            way_description: route.way_description,
+            map_url: route.map_url
+          }),
         });
-        savedRouteData = await res.json();
       } else {
-        const res = await fetchWithAuth(`${API}/hiking/admin/`, {
+        res = await fetchWithAuth('/api/hiking/admin/', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: route.name, way_description: route.way_description, map_url: route.map_url }),
+          body: JSON.stringify({
+            name: route.name,
+            way_description: route.way_description,
+            map_url: route.map_url
+          }),
         });
-        savedRouteData = await res.json();
       }
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        openModal({
+          title: 'Save failed',
+          message: errorText || 'Failed to save route.',
+          type: 'danger',
+          onConfirm: closeModal
+        });
+        return;
+      }
+
+      const savedRouteData = await res.json();
       const updated = [...routes];
       updated[routeIndex] = { ...savedRouteData, stops: route.stops || [] };
       setRoutes(updated);
       setSavedRoute(routeIndex);
-    } catch {
-      setError('Failed to save route.');
+
+      openModal({
+        title: 'Success',
+        message: 'Route saved successfully.',
+        type: 'success',
+        onConfirm: closeModal
+      });
+    } catch (error) {
+      openModal({
+        title: 'Connection error',
+        message: error.message || 'Server is unreachable.',
+        type: 'danger',
+        onConfirm: closeModal
+      });
     } finally {
       setSaving(false);
     }
@@ -104,16 +187,59 @@ export default function EditWebInfoHiking() {
 
   async function deleteStop(routeIndex, stopIndex) {
     const stop = routes[routeIndex].stops[stopIndex];
-    if (!window.confirm('Delete this stop?')) return;
-    if (stop.id) {
-      await fetchWithAuth(`${API}/hiking/stops/${stop.id}/`, { method: 'DELETE' });
+
+    try {
+      if (stop.id) {
+        const res = await fetchWithAuth(`/api/hiking/stops/${stop.id}/`, {
+          method: 'DELETE'
+        });
+
+        if (!res.ok && res.status !== 204) {
+          const errorText = await res.text();
+          openModal({
+            title: 'Delete failed',
+            message: errorText || 'Failed to delete stop.',
+            type: 'danger',
+            onConfirm: closeModal
+          });
+          return;
+        }
+      }
+
+      setRoutes(prev => {
+        const updated = [...prev];
+        updated[routeIndex] = {
+          ...updated[routeIndex],
+          stops: updated[routeIndex].stops.filter((_, i) => i !== stopIndex),
+        };
+        return updated;
+      });
+
+      openModal({
+        title: 'Success',
+        message: 'Stop deleted successfully.',
+        type: 'success',
+        onConfirm: closeModal
+      });
+    } catch (error) {
+      openModal({
+        title: 'Connection error',
+        message: error.message || 'Server is unreachable.',
+        type: 'danger',
+        onConfirm: closeModal
+      });
     }
-    const updated = [...routes];
-    updated[routeIndex] = {
-      ...updated[routeIndex],
-      stops: updated[routeIndex].stops.filter((_, i) => i !== stopIndex),
-    };
-    setRoutes(updated);
+  }
+  function confirmDeleteStop(routeIndex, stopIndex) {
+    openModal({
+      title: 'Delete stop',
+      message: 'Delete this stop?',
+      type: 'danger',
+      onConfirm: async () => {
+        closeModal();
+        await deleteStop(routeIndex, stopIndex);
+      }
+    });
   }
 
   async function saveStop(stop, routeId) {
@@ -124,26 +250,62 @@ export default function EditWebInfoHiking() {
     fd.append('route', routeId);
     if (stop._photoFile) fd.append('photo', stop._photoFile);
     if (stop.id) {
-      return fetchWithAuth(`${API}/hiking/stops/${stop.id}/`, { method: 'PATCH', body: fd });
+      return fetchWithAuth(`/api/hiking/stops/${stop.id}/`, { method: 'PATCH', body: fd });
     } else {
-      return fetchWithAuth(`${API}/hiking/stops/`, { method: 'POST', body: fd });
+      return fetchWithAuth(`/api/hiking/stops/`, { method: 'POST', body: fd });
     }
   }
 
   async function saveAllStops(routeIndex) {
     const route = routes[routeIndex];
-    if (!route.id) { setError('Save the route first before adding stops.'); return; }
+
+    if (!route.id) {
+      openModal({
+        title: 'Route required',
+        message: 'Save the route first before adding stops.',
+        type: 'danger',
+        onConfirm: closeModal
+      });
+      return;
+    }
+
     setSaving(true);
-    setError('');
+
     try {
       const results = await Promise.all(route.stops.map(s => saveStop(s, route.id)));
+
+      for (const res of results) {
+        if (!res.ok) {
+          const errorText = await res.text();
+          openModal({
+            title: 'Save failed',
+            message: errorText || 'Failed to save stops.',
+            type: 'danger',
+            onConfirm: closeModal
+          });
+          return;
+        }
+      }
+
       const updatedStops = await Promise.all(results.map(r => r.json()));
       const updated = [...routes];
       updated[routeIndex] = { ...updated[routeIndex], stops: updatedStops };
       setRoutes(updated);
       setSavedRoute(`stops-${routeIndex}`);
-    } catch {
-      setError('Failed to save stops.');
+
+      openModal({
+        title: 'Success',
+        message: 'Stops saved successfully.',
+        type: 'success',
+        onConfirm: closeModal
+      });
+    } catch (error) {
+      openModal({
+        title: 'Connection error',
+        message: error.message || 'Server is unreachable.',
+        type: 'danger',
+        onConfirm: closeModal
+      });
     } finally {
       setSaving(false);
     }
@@ -170,7 +332,7 @@ export default function EditWebInfoHiking() {
 
               <div className={styles.routeHeader}>
                 <h2 className={styles.sectionTitle}>{route.name || `Route ${ri + 1}`}</h2>
-                <button type="button" className={styles.deleteButton} onClick={() => deleteRoute(ri)}>
+                <button type="button" className={styles.deleteButton} onClick={() => confirmDeleteRoute(ri)}>
                   ✕ DELETE ROUTE
                 </button>
               </div>
@@ -210,7 +372,7 @@ export default function EditWebInfoHiking() {
                       {stop._photoPreview
                         ? <img src={stop._photoPreview} alt="preview" className={styles.stopPhoto} />
                         : stop.photo
-                          ? <img src={getMediaUrl(stop.photo)} alt={stop.name} className={styles.stopPhoto} />
+                          ? <img src={buildMediaUrl(stop.photo)} alt={stop.name} className={styles.stopPhoto} />
                           : <div className={styles.photoPlaceholder} />
                       }
                       <label className={styles.photoLabel}>
@@ -236,7 +398,7 @@ export default function EditWebInfoHiking() {
                       </div>
                     </div>
 
-                    <button type="button" className={styles.deleteButtonSmall} onClick={() => deleteStop(ri, si)}>✕</button>
+                    <button type="button" className={styles.deleteButtonSmall} onClick={() => confirmDeleteStop(ri, si)}>✕</button>
                   </div>
                 ))}
 
@@ -261,6 +423,14 @@ export default function EditWebInfoHiking() {
 
         </div>
       )}
+      <Modal
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onConfirm={modal.onConfirm}
+        onCancel={closeModal}
+      />
     </div>
   );
 }

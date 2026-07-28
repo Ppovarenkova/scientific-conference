@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Loader from '../ui/Loader/Loader';
 import { useConferenceInfo } from './../hooks/useConferenceInfo';
+import { buildApiUrl } from '../../utils/api';
 
 export default function Program() {
     const [data, setData] = useState([]);
@@ -13,7 +14,7 @@ export default function Program() {
     const info = useConferenceInfo();
 
     useEffect(() => {
-        fetch("http://localhost:8000/api/program/")
+        fetch(buildApiUrl("/api/program/"))
             .then(res => res.json())
             .then(data => {
                 setData(data);

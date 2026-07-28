@@ -5,7 +5,6 @@ import Title from '../ui/Title/Title';
 import Loader from '../ui/Loader/Loader';
 import { fetchWithAuth } from '../../utils/api';
 
-const API = 'http://localhost:8000/api';
 
 export default function EditWebInfoVenue() {
   const [form, setForm] = useState(null);
@@ -15,7 +14,7 @@ export default function EditWebInfoVenue() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`${API}/conference-info/`)
+    fetchWithAuth(`/api/conference-info/`)
       .then(r => r.json())
       .then(data => {
         setForm(data);
@@ -33,9 +32,8 @@ export default function EditWebInfoVenue() {
     setSaving(true);
     setError('');
     try {
-      const res = await fetchWithAuth(`${API}/conference-info/edit/`, {
+      const res = await fetchWithAuth(`/api/conference-info/edit/`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           venue_text: form.venue_text,
           venue_map_embed_url: form.venue_map_embed_url,

@@ -5,6 +5,7 @@ import avatar from '../../assets/avatar.png';
 import Title from '../ui/Title/Title';
 import Modal from '../ui/Modal/Modal';
 import { useNavigate } from 'react-router-dom';
+import { fetchWithAuth, buildMediaUrl } from '../../utils/api.js';
 
 export default function EditSubmissionModal({ submission, onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -64,10 +65,7 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
       });
 
       if (submission.photo) {
-        setPhotoPreview(submission.photo.startsWith('http')
-          ? submission.photo
-          : `http://localhost:8000${submission.photo}`
-        );
+        setPhotoPreview(buildMediaUrl(submission.photo));
       }
 
       if (submission.abstract_text) {
@@ -96,219 +94,150 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
   };
 
   const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
+  const file = e.target.files[0];
 
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        alert("Please select a valid image file");
-        return;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Photo size must not exceed 5MB");
-        return;
-      }
-
-      setPhoto(file);
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removePhoto = async () => {
-    if (!window.confirm('Are you sure you want to remove the photo?')) {
+  if (file) {
+    if (!file.type.startsWith('image/')) {
+      openModal({
+        title: "Invalid file",
+        message: "Please select a valid image file.",
+        type: "danger",
+        onConfirm: closeModal
+      });
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
-        openModal({
-          title: "Session expired",
-          message: "Please login again.",
-          type: "danger",
-          onConfirm: () => {
-            closeModal();
-            navigate("/");
-          }
-        });
-        setLoading(false);
-        return;
-      }
-
-    
-      const response = await fetch(`http://localhost:8000/api/admin/submissions/${submission.id}/`, {
-        method: 'PATCH',
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          photo: null  
-        }),
-      });
-
-      if (response.status === 401) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        openModal({
-          title: "Session expired",
-          message: "Please login again.",
-          type: "danger",
-          onConfirm: () => {
-            closeModal();
-            navigate("/");
-          }
-        });
-        setLoading(false);
-        return;
-      }
-
-      if (response.ok) {
-        setPhoto(null);
-        setPhotoPreview(null);
-        
-        const fileInput = document.querySelector('input[type="file"]');
-        if (fileInput) {
-          fileInput.value = '';
-        }
-
-        openModal({
-          title: "Success",
-          message: "Photo removed successfully!",
-          type: "success",
-          onConfirm: async () => {
-            closeModal();
-            const updated = await response.json();
-            onSave(updated);
-          }
-        });
-      } else {
-        const errorText = await response.text();
-        console.error("Error response:", errorText);
-        openModal({
-          title: "Error",
-          message: `Failed to remove photo: ${errorText}`,
-          type: "danger",
-          onConfirm: closeModal
-        });
-      }
-    } catch (error) {
-      console.error("Error removing photo:", error);
+    if (file.size > 5 * 1024 * 1024) {
       openModal({
-        title: "Connection error",
-        message: error.message,
+        title: "File too large",
+        message: "Photo size must not exceed 5MB.",
         type: "danger",
         onConfirm: closeModal
       });
-    } finally {
-      setLoading(false);
+      return;
     }
-  };
+
+    setPhoto(file);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPhotoPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  }
+ };
+
+  const removePhoto = async () => {
+  setLoading(true);
+
+  try {
+    const response = await fetchWithAuth(`/api/admin/submissions/${submission.id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        photo: null
+      }),
+    });
+
+    if (response.ok) {
+      const updated = await response.json();
+
+      setPhoto(null);
+      setPhotoPreview(null);
+
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) {
+        fileInput.value = '';
+      }
+
+      openModal({
+        title: "Success",
+        message: "Photo removed successfully!",
+        type: "success",
+        onConfirm: () => {
+          closeModal();
+          onSave(updated);
+        }
+      });
+    } else {
+      const errorText = await response.text();
+      openModal({
+        title: "Error",
+        message: errorText || "Failed to remove photo.",
+        type: "danger",
+        onConfirm: closeModal
+      });
+    }
+  } catch (error) {
+    openModal({
+      title: "Connection error",
+      message: error.message || "Server is unreachable.",
+      type: "danger",
+      onConfirm: closeModal
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const token = localStorage.getItem("access_token");
+  try {
+    let response;
 
-      if (!token) {
-        openModal({
-          title: "Session expired",
-          message: "Please login again.",
-          type: "danger",
-          onConfirm: () => {
-            closeModal();
-            navigate("/");
-          }
-        });
-        setLoading(false);
-        return;
-      }
+    if (photo) {
+      const submitData = new FormData();
+      Object.keys(formData).forEach(key => {
+        if (formData[key] !== null && formData[key] !== undefined) {
+          submitData.append(key, formData[key]);
+        }
+      });
+      submitData.append('photo', photo);
 
-      let response;
+      response = await fetchWithAuth(`/api/admin/submissions/${submission.id}/`, {
+        method: 'PUT',
+        body: submitData,
+      });
+    } else {
+      response = await fetchWithAuth(`/api/admin/submissions/${submission.id}/`, {
+        method: 'PATCH',
+        body: JSON.stringify(formData),
+      });
+    }
 
-      if (photo) {
-        const submitData = new FormData();
-        Object.keys(formData).forEach(key => {
-          if (formData[key] !== null && formData[key] !== undefined) {
-            submitData.append(key, formData[key]);
-          }
-        });
-        submitData.append('photo', photo);
-
-        response = await fetch(`http://localhost:8000/api/admin/submissions/${submission.id}/`, {
-          method: 'PUT',
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
-          body: submitData,
-        });
-      } else {
-        response = await fetch(`http://localhost:8000/api/admin/submissions/${submission.id}/`, {
-          method: 'PATCH',
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        });
-      }
-
-      if (response.status === 401) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        openModal({
-          title: "Session expired",
-          message: "Please login again.",
-          type: "danger",
-          onConfirm: () => {
-            closeModal();
-            navigate("/");
-          }
-        });
-        setLoading(false);
-        return;
-      }
-
-      if (response.ok) {
-        const updated = await response.json();
-        openModal({
-          title: "Success",
-          message: "Changes saved successfully!",
-          type: "success",
-          onConfirm: () => {
-            closeModal();
-            onSave(updated);
-            onClose();
-          }
-        });
-      } else {
-        const errorText = await response.text();
-        console.error("Error response:", errorText);
-        alert(`Failed to save (${response.status}): ${errorText}`);
-      }
-    } catch (error) {
-      console.error("Detailed error:", error);
+    if (response.ok) {
+      const updated = await response.json();
       openModal({
-        title: "Connection error",
-        message: error.message,
+        title: "Success",
+        message: "Changes saved successfully!",
+        type: "success",
+        onConfirm: () => {
+          closeModal();
+          onSave(updated);
+          onClose();
+        }
+      });
+    } else {
+      const errorText = await response.text();
+      openModal({
+        title: "Save failed",
+        message: errorText || `Failed to save (${response.status}).`,
         type: "danger",
         onConfirm: closeModal
       });
-    } finally {
-      setLoading(false);
     }
-  };
-
+  } catch (error) {
+    openModal({
+      title: "Connection error",
+      message: error.message || "Server is unreachable.",
+      type: "danger",
+      onConfirm: closeModal
+    });
+  } finally {
+    setLoading(false);
+  }
+};
   if (!submission) return null;
 
   return createPortal(
@@ -339,7 +268,7 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
             ) : (
               <img src={avatar} alt="No photo" className={styles.avatarPlaceholder} />
             )}
-            
+
             <div className={styles.photoButtons}>
               <label className={styles.uploadButton}>
                 <input
@@ -350,7 +279,7 @@ export default function EditSubmissionModal({ submission, onClose, onSave }) {
                 />
                 Change Photo
               </label>
-              
+
               {photoPreview && (
                 <button
                   type="button"

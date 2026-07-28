@@ -3,13 +3,14 @@ import HomeCard from '../ui/HomeCard/HomeCard';
 import Title from '../ui/Title/Title';
 import { useEffect, useState } from "react";
 import Loader from '../ui/Loader/Loader';
+import { buildApiUrl } from '../../utils/api';
 
 export default function Organisers() {
   const [organisers, setOrganisers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/organizers/")
+    fetch(buildApiUrl("/api/organizers/"))
       .then(res => res.json())
       .then(data => {
         setOrganisers(data);

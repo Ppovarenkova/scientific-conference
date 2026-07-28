@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import styles from './Hiking.module.css';
 import Title from '../ui/Title/Title';
 import Loader from '../ui/Loader/Loader';
+import { buildApiUrl } from '../../utils/api';
 
 export default function Hiking() {
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/hiking/')
+    fetch(buildApiUrl("/api/hiking/"))
       .then(r => r.json())
       .then(data => { setRoutes(data); setLoading(false); })
       .catch(() => setLoading(false));

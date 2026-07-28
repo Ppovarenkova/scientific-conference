@@ -4,6 +4,7 @@ import AbstractCard from '../ui/AbstractCard/AbstractCard';
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Loader from '../ui/Loader/Loader';
+import { buildApiUrl } from '../../utils/api';
 
 export default function Abstracts() {
     const [abstracts, setAbstracts] = useState([]);
@@ -11,7 +12,7 @@ export default function Abstracts() {
     const location = useLocation();
 
     useEffect(() => {
-        fetch("http://localhost:8000/api/abstracts/")
+        fetch(buildApiUrl("/api/abstracts/"))
             .then(res => res.json())
             .then(data => {
                 setAbstracts(data);

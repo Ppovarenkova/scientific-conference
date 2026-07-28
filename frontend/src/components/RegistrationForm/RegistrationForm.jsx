@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import Title from '../ui/Title/Title';
 import { useConferenceInfo } from '../hooks/useConferenceInfo';
 import Modal from '../ui/Modal/Modal';
+import { buildApiUrl } from '../../utils/api';
 
 function useModal() {
   const [modal, setModal] = useState({ isOpen: false });
@@ -119,7 +120,7 @@ export default function RegistrationForm() {
           submitData.append('photo', photo);
         }
 
-        const response = await fetch("http://localhost:8000/api/submit/", {
+        const response = await fetch(buildApiUrl("/api/submit/"), {
           method: "POST",
           body: submitData,
         });

@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import styles from './Accommodation.module.css';
 import Title from '../ui/Title/Title';
 import Loader from '../ui/Loader/Loader';
+import { buildApiUrl, buildMediaUrl } from '../../utils/api';
 
 export default function Accommodation() {
     const [data, setData] = useState(null);
 
     useEffect(() => {
-        fetch("http://localhost:8000/api/accommodation/")
+        fetch(buildApiUrl("/api/accommodation/"))
             .then(res => res.json())
             .then(setData);
     }, []);
@@ -29,7 +30,7 @@ export default function Accommodation() {
                                 <div key={option.id} className={styles.option}>
                                     {option.photo && (
                                         <img
-                                            src={`http://localhost:8000${option.photo}`}
+                                            src={buildMediaUrl(option.photo)}
                                             alt={option.name}
                                             className={styles.photo}
                                         />

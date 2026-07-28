@@ -4,13 +4,14 @@ import Separator from '../ui/Separator/Separator';
 import Title from '../ui/Title/Title';
 import Loader from '../ui/Loader/Loader';
 import { useEffect, useState } from "react";
+import { buildApiUrl } from '../../utils/api';
 
 export default function OrganisingCommittee() {
     const [organisers, setOrganisers] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch("http://localhost:8000/api/committees/")
+        fetch(buildApiUrl("/api/committees/"))
             .then(res => res.json())
             .then(data => {
                 setOrganisers(data);

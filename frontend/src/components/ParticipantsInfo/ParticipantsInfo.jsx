@@ -5,6 +5,7 @@ import Title from '../ui/Title/Title';
 import Loader from '../ui/Loader/Loader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck } from '@fortawesome/free-solid-svg-icons';
+import {fetchWithAuth} from '../../utils/api.js';
 
 export default function ParticipantsInfo() {
   const [submissions, setSubmissions] = useState([]);
@@ -18,9 +19,7 @@ export default function ParticipantsInfo() {
   async function fetchSubmissions() {
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetch('http://localhost:8000/api/admin/submissions/?status=', {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
+       const res = await fetchWithAuth('/api/admin/submissions/?status=');
       const data = await res.json();
       setSubmissions(data);
     } catch (error) {

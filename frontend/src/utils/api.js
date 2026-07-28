@@ -1,26 +1,67 @@
 let isRefreshing = false;
 let failedQueue = [];
 
+const RAW_API_BASE_URL =
+  process.env.REACT_APP_BACKEND_API_BASE_URL ||
+  "http://localhost:8000";
+
+export const API_BASE_URL = RAW_API_BASE_URL.replace(/\/$/, "");
+
 const processQueue = (error, token = null) => {
   failedQueue.forEach(prom => {
-    if (error) prom.reject(error);
-    else prom.resolve(token);
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
   });
+
   failedQueue = [];
 };
+
+export function buildApiUrl(path) {
+  if (!path) return API_BASE_URL;
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+function buildHeaders(options, token) {
+  const isFormData = options.body instanceof FormData;
+
+  return {
+    ...options.headers,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(isFormData
+      ? {}
+      : {
+          "Content-Type":
+            options.headers?.["Content-Type"] || "application/json",
+        }),
+  };
+}
+
+export function buildMediaUrl(path) {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+}
 
 export async function refreshAccessToken() {
   const refreshToken = localStorage.getItem("refresh_token");
 
-  if (!refreshToken) return null;
+  if (!refreshToken) {
+    return null;
+  }
 
   try {
-    const response = await fetch("http://localhost:8000/api/auth/refresh/", {
+    const response = await fetch(buildApiUrl("/api/auth/refresh/"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ refresh: refreshToken })
+      body: JSON.stringify({
+        refresh: refreshToken,
+      }),
     });
 
     if (!response.ok) {
@@ -42,22 +83,11 @@ export async function refreshAccessToken() {
   }
 }
 
-function buildHeaders(options, token) {
-  const isFormData = options.body instanceof FormData;
-
-  return {
-    ...options.headers,
-    Authorization: `Bearer ${token}`,
-    ...(isFormData ? {} : {
-      "Content-Type": options.headers?.["Content-Type"] || "application/json"
-    }),
-  };
-}
-
 export async function fetchWithAuth(url, options = {}) {
   const token = localStorage.getItem("access_token");
+  const finalUrl = buildApiUrl(url);
 
-  const response = await fetch(url, {
+  const response = await fetch(finalUrl, {
     ...options,
     headers: buildHeaders(options, token),
   });
@@ -66,10 +96,10 @@ export async function fetchWithAuth(url, options = {}) {
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
-      }).then(token => {
-        return fetch(url, {
+      }).then(newToken => {
+        return fetch(finalUrl, {
           ...options,
-          headers: buildHeaders(options, token),
+          headers: buildHeaders(options, newToken),
         });
       });
     }
@@ -82,7 +112,7 @@ export async function fetchWithAuth(url, options = {}) {
       if (newToken) {
         processQueue(null, newToken);
 
-        return fetch(url, {
+        return fetch(finalUrl, {
           ...options,
           headers: buildHeaders(options, newToken),
         });
@@ -98,3 +128,6 @@ export async function fetchWithAuth(url, options = {}) {
 
   return response;
 }
+console.log("window.REACT_APP_BACKEND_API_BASE_URL =", window.REACT_APP_BACKEND_API_BASE_URL);
+console.log("process.env.REACT_APP_BACKEND_API_BASE_URL =", process.env.REACT_APP_BACKEND_API_BASE_URL);
+console.log("API_BASE_URL =", API_BASE_URL);

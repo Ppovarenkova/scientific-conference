@@ -1,6 +1,7 @@
 import styles from './ParticipantsCard.module.css';
 import avatar from '../../../assets/avatar.png';
 import { useNavigate } from "react-router-dom";
+import { buildMediaUrl } from '../../../utils/api';
 
 export default function ParticipantsCard({ name, department, email, abstractId, photo }) {
   const navigate = useNavigate();
@@ -9,9 +10,7 @@ export default function ParticipantsCard({ name, department, email, abstractId, 
     navigate(`/abstracts?abstract=${abstractId}`);
   }
 
-  const imgSrc = photo
-    ? (photo.startsWith("http") ? photo : `http://localhost:8000${photo}`)
-    : avatar;
+  const imgSrc = photo ? buildMediaUrl(photo) : avatar;
 
   return (
     <div className={styles.card}>
