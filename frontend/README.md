@@ -52,14 +52,24 @@ The application will run on `http://localhost:3000/` by default.
 
 ## Environment Variables
 
-The frontend uses environment variables to define the backend API base URL.  
-For local development, the backend address is typically configured in `.env.development`.
+The frontend reads the backend base URL from the `REACT_APP_BACKEND_API_BASE_URL` environment variable defined in the corresponding `.env` file.
 
-Example:
+Create React App automatically loads different environment files depending on the command used:
+
+- `npm start` uses `.env.development`
+- `npm run build` uses `.env.production`
+
+For local development, the backend is configured in `.env.development`:
 
 ```env
 REACT_APP_BACKEND_API_BASE_URL=http://localhost:8000
 ```
+
+For production builds, `.env.production` should contain the URL of the deployed backend server.  
+After changing environment variables, restart the development server or rebuild the frontend to apply the updates.
+
+API requests are constructed centrally in `src/utils/api.js`.
+
 
 If the project is deployed on another server, this value should be updated accordingly.
 
