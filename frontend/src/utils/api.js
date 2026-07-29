@@ -128,6 +128,3 @@ export async function fetchWithAuth(url, options = {}) {
 
   return response;
 }
-console.log("window.REACT_APP_BACKEND_API_BASE_URL =", window.REACT_APP_BACKEND_API_BASE_URL);
-console.log("process.env.REACT_APP_BACKEND_API_BASE_URL =", process.env.REACT_APP_BACKEND_API_BASE_URL);
-console.log("API_BASE_URL =", API_BASE_URL);
