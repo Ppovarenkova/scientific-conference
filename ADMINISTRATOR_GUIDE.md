@@ -8,6 +8,8 @@ This document describes how to use the administrative part of the conference man
 
 The entry point to the administrative interface is located in the footer of the public website.
 
+![Footer with administration link](./assets/footer1.png)
+
 1. Open the public website.
 2. Scroll to the footer.
 3. Select the administration link.
@@ -29,6 +31,8 @@ After a successful login, the system opens the administrative panel. The panel c
 
 The administrative panel serves as the main navigation hub for all organizer tasks.
 
+![Admin panel overview](./assets/adminpanel.png)
+
 ## Participants Info
 
 ### Purpose
@@ -47,6 +51,8 @@ Each item displays:
 
 This page is not interactive. It is intended only for reading information. To modify participant data, use the **Edit Participants and Abstracts** section.
 
+![Participants info](./assets/participantsinfo.png)
+
 ## Edit Participants and Abstracts
 
 ### Purpose
@@ -60,6 +66,10 @@ The **Edit Participants and Abstracts** section contains the complete informatio
 3. Select **Edit** on the participant card.
 4. Review or update the participant and abstract data.
 5. Confirm the action in the modal window if prompted.
+
+![Participant submissions](./assets/participantssubmissions.png)
+
+![Edit submission modal](./assets/editsubmissionmodal.png)
 
 ### Publish a Submission
 
@@ -133,13 +143,13 @@ The **Edit Program** section contains two main parts:
 
 This section is used to create conference days, create chairs, assign talks to the schedule, add breaks, and modify already scheduled items.
 
-## Unscheduled Talks Section
-
-### Purpose
+### Unscheduled Talks Section
 
 The **Unscheduled Talks** section displays published submissions whose presentation time has not yet been assigned.
 
 The **Move to Unscheduled** action moves a talk from the schedule back to the **Unscheduled Talks** section. The talk becomes invisible in the public part of the website until it is assigned again.
+
+![Unscheduled talks](./assets/unscheduledtalks.png)
 
 ### Assign a Talk to the Schedule
 
@@ -163,11 +173,11 @@ If the needed chair is missing:
 1. Verify that the correct conference day is selected.
 2. If the correct day is selected and the chair is still missing, create a new chair in the **Conference Schedule** section.
 
-## Conference Schedule Section
-
-### Purpose
+### Conference Schedule Section
 
 The **Conference Schedule** section displays the conference days as separate cards. Each card contains the talks, breaks, and chairs assigned to that day.
+
+![Conference schedule](./assets/schedule.png)
 
 ### Add a New Conference Day
 
@@ -226,6 +236,8 @@ A break is used for schedule items that do not have a speaker and are not relate
 4. Enter the end time.
 5. Select **Save**.
 
+![Add chair and break](./assets/addbreakaddchair.png)
+
 #### Edit a Talk or Break
 
 To change the time or chair of any talk or break:
@@ -234,6 +246,8 @@ To change the time or chair of any talk or break:
 2. Select the pen icon on the right side.
 3. Update the required values.
 4. Save the changes.
+
+![Edit talk and chair](./assets/edittalkeditchair.png)
 
 ### Important Note About Moving a Talk
 
@@ -256,6 +270,8 @@ Use the **Home** subsection to update information displayed on the homepage.
 
 After saving, the updated information is displayed in the public part of the website.
 
+![Home subsection](./assets/edithome.png)
+
 ### Organizing Committee and Organizers Cards
 
 These cards allow you to manage person records and photos.
@@ -267,6 +283,8 @@ Available actions:
 - Delete a person using the cross icon on the right side of the required record.
 
 After making changes, select **Save** at the bottom of the corresponding card. The changes are not applied until the card is saved.
+
+![Organizers section](./assets/editorganizers.png)
 
 ### Registration Subsection
 
@@ -332,6 +350,8 @@ The option with the lowest order number is shown first on the public website.
 
 After all changes, select **Save** at the end of the card.
 
+![Accommodation section](./assets/editaccomodation.png)
+
 ### Hiking Subsection
 
 The **Hiking** subsection is organized into routes, and each route contains several stops.
@@ -371,6 +391,10 @@ The stop with the lowest order number is shown first.
 
 After making changes to stops, select **Save** at the end of the card.
 
+![Hiking section 1](./assets/edithiking1.png)
+
+![Hiking section 2](./assets/edithiking2.png)
+
 ### Footer Subsection
 
 Use the **Footer** subsection to update the information shown in the footer of the website.
@@ -381,20 +405,24 @@ Use the **Footer** subsection to update the information shown in the footer of t
 
 The footer is displayed at the bottom of every public page.
 
-## Generate Documents
+### Generate Documents
 
 The admin panel contains two document-generation buttons:
 
 - **Download Badges**
 - **Download Program PDF**
 
-### Download Badges
+![Download badges](./assets/badges.png)
+
+![Download program PDF](./assets/programpdf.png)
+
+#### Download Badges
 
 When you select **Download Badges**, the system automatically downloads participant badges in PDF format.
 
 The badge data is generated automatically from published submissions. To change badge information, update the corresponding participant data in **Edit Participants and Abstracts**.
 
-### Download Program PDF
+#### Download Program PDF
 
 When you select **Download Program PDF**, the system automatically downloads the conference program in PDF format.
 
