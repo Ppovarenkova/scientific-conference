@@ -39,6 +39,11 @@ The project focuses on:
 - Modular component-based frontend architecture.
 - REST API backend with protected administrative operations.
 
+## Demo
+
+Demo URL: `TO_BE_ADDED`
+
+
 ## Local Setup
 
 ### Backend
@@ -81,11 +86,6 @@ The project focuses on:
    ```bash
    npm run start
    ```
-
-## Demo
-
-Demo URL: `TO_BE_ADDED`
-
 
 ## Documentation
 
