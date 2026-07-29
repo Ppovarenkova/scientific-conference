@@ -149,7 +149,7 @@ The **Unscheduled Talks** section displays published submissions whose presentat
 
 The **Move to Unscheduled** action moves a talk from the schedule back to the **Unscheduled Talks** section. The talk becomes invisible in the public part of the website until it is assigned again.
 
-![Unscheduled talks](./assets/unscheduledtalks.png)
+![Unscheduled talks](./assets/uncheduledtalks.png)
 
 ### Assign a Talk to the Schedule
 
