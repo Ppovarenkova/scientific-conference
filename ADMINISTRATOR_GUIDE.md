@@ -15,6 +15,8 @@ The entry point to the administrative interface is located in the footer of the 
 3. Select the administration link.
 4. Enter the password known to the website administrators.
 
+![Admin Modal](./assets/adminmodal.png)
+
 ### Leave the Admin Area
 
 You can leave the administrative part of the website in two ways:
@@ -59,6 +61,8 @@ This page is not interactive. It is intended only for reading information. To mo
 
 The **Edit Participants and Abstracts** section contains the complete information about participant submissions and their abstracts. This section is used for reviewing, editing, publishing, filtering, and deleting submissions.
 
+![Participant submissions](./assets/participantssubmissions.png)
+
 ### Open a Participant for Editing
 
 1. Open **Edit Participants and Abstracts**.
@@ -67,7 +71,6 @@ The **Edit Participants and Abstracts** section contains the complete informatio
 4. Review or update the participant and abstract data.
 5. Confirm the action in the modal window if prompted.
 
-![Participant submissions](./assets/participantssubmissions.png)
 
 ![Edit submission modal](./assets/editsubmissionmodal.png)
 
