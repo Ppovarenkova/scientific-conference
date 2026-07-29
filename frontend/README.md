@@ -1,70 +1,97 @@
-# Getting Started with Create React App
+# Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Overview
 
-## Available Scripts
+This directory contains the frontend part of the scientific conference management system. The application is implemented in React and provides the user interface for both public visitors and administrative users.
 
-In the project directory, you can run:
+The frontend presents conference information, program details, participant-related content, accommodation and hiking information, and the registration form. It also includes the administrative interface used for managing conference data through authenticated operations.
 
-### `npm start`
+The application communicates with the Django backend through a REST API and is structured as a modular component-based interface. The design emphasizes clarity, usability, and responsive behavior across different screen sizes.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Tech Stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- React
+- React Router
+- Create React App
 
-### `npm test`
+## Testing
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Jest and React Testing Library
 
-### `npm run build`
+## Project Structure
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- `src/` — application source code.
+- `src/components/` — reusable UI and page components.
+- `src/ui/` — shared interface components.
+- `src/hooks/` — custom hooks.
+- `src/utils/` — API utilities and helper functions.
+- `public/` — static public assets.
+- `.env.development` — local development environment variables.
+- `.env.production` — production environment variables.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Requirements
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Node.js
+- npm
 
-### `npm run eject`
+## Setup
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+2. Configure the environment variables if needed.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+3. Start the development server:
+   ```bash
+   npm run start
+   ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+The application will run on `http://localhost:3000/` by default.
 
-## Learn More
+## Environment Variables
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The frontend uses environment variables to define the backend API base URL.  
+For local development, the backend address is typically configured in `.env.development`.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Example:
 
-### Code Splitting
+```env
+REACT_APP_BACKEND_API_BASE_URL=http://localhost:8000
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+If the project is deployed on another server, this value should be updated accordingly.
 
-### Analyzing the Bundle Size
+## Production Build
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+To create a production build, run:
 
-### Making a Progressive Web App
+```bash
+npm run build
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Testing
 
-### Advanced Configuration
+To run the frontend test suite, use:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```bash
+npm test
+```
 
-### Deployment
+## Main Features
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+- Public conference website.
+- Conference program overview.
+- Registration form for participants.
+- Participant and abstract-related pages.
+- Accommodation information.
+- Hiking information.
+- Administrative login and protected admin routes.
+- Component-based editing interface for conference content.
+- Modal-based interaction for important user actions.
 
-### `npm run build` fails to minify
+## Notes
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+The frontend is designed to work together with the Django backend and depends on the REST API for data loading and data submission.  
+For local development, the backend server should be running before the frontend is used.
