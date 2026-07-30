@@ -8,7 +8,7 @@ This document describes how to use the administrative part of the conference man
 
 The entry point to the administrative interface is located in the footer of the public website.
 
-\textbf{Warning:} The administrative interface is recommended to be used on desktop devices with a sufficiently large screen. Due to the large number of controls, buttons, and content cards, using it on smaller displays may reduce usability and make navigation more difficult.
+> **Warning:** The admin panel is best used on a desktop or large screen. On smaller screens, the interface may be harder to navigate.
 
 ![Footer with administration link](./assets/footer1.png)
 
