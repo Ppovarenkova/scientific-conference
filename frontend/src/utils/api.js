@@ -42,17 +42,16 @@ function buildHeaders(options, token) {
 
 export function buildMediaUrl(path) {
   if (!path) return '';
-
   if (/^https?:\/\//i.test(path)) return path;
 
   const base = API_BASE_URL.replace(/\/$/, '');
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  let cleanPath = path.trim().replace(/^\/+/, '');
 
-  if (cleanPath.startsWith('/conference-demo/')) {
-    return `${window.location.origin}${cleanPath}`;
+  if (cleanPath.startsWith('conference-demo/')) {
+    cleanPath = cleanPath.replace(/^conference-demo\//, '');
   }
 
-  return `${base}${cleanPath}`;
+  return `${base}/${cleanPath}`;
 }
 
 export async function refreshAccessToken() {
