@@ -41,7 +41,7 @@ The project focuses on:
 
 ## Demo
 
-Demo URL: `TO_BE_ADDED`
+Demo URL: `https://mmg-webapps.fjfi.cvut.cz/conference-demo/`
 
 
 ## Local Setup
